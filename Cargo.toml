@@ -1,0 +1,11 @@
+[package]
+name = "mcts_ramsey"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bit-iter = "1.1.1"
+bit_fiddler = "2.1.1"
+rand = "0.8.5"
