@@ -18,6 +18,11 @@ pub struct Recoloring {
     pub edge: Edge
 }
 
+impl Recoloring {
+    pub fn old_edge(&self) -> ColoredEdge { ColoredEdge { color: self.old_color, edge: self.edge } }
+    pub fn new_edge(&self) -> ColoredEdge { ColoredEdge { color: self.new_color, edge: self.edge } }
+}
+
 pub const fn choose(n: usize, k: usize) -> usize {
     match (n, k) {
         (_, 0) => 1,
