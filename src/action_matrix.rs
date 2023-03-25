@@ -132,7 +132,7 @@ impl ActionMatrix {
         if curr_color == color {
             for other_color in 0..C {
                 if other_color != color {
-                    self.actions.change_priority_by(
+                    self.actions.change_priority_by(        // todo!("benchmark speed from .increase_priority")
                         &(other_color, pos), 
                         |slope| *slope -= amount
                     );
@@ -235,9 +235,40 @@ mod test_random_recoloring {
                         actions.counts[c][pos]
                     })
                     .sum();
-                assert_eq!(graph_count * choose(N-2, S[c]-2), matrix_count);
+                assert_eq!(graph_count * choose(S[c], 2), matrix_count);
             }
             actions.randomly_recolor(&mut rng);
+        }
+    }
+
+    impl ActionMatrix {
+        fn calculate_slope(&self, (new_color, pos): Action) -> Option<Iyy> {
+            let edge = pos_to_edge(pos);
+            let old_color = self.graph.color(edge)
+                .unwrap();
+        
+            if old_color == new_color { None } 
+            else { Some(
+                self.counts[old_color][pos] -
+                self.counts[new_color][pos]
+            )}
+        }
+    }
+
+    #[test]
+    fn verify_all_slopes() {
+        let mut actions = ActionMatrix::from(ColoredGraph::red());
+        let mut rng = rand::thread_rng();
+        for _ in 0..100 {
+            for c in 0..C {
+                for pos in 0..E {
+                    let slope = actions.slope((c, pos))
+                        .map(|&x| x);
+                    let calculated_slope = actions.calculate_slope((c, pos));
+                    assert_eq!(slope, calculated_slope)
+                }
+            }
+            actions.randomly_recolor(&mut rng)
         }
     }
 }

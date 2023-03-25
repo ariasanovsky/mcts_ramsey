@@ -1,4 +1,4 @@
-pub use crate::r_3_3::*;
+pub use crate::r_3_3_3::*;
 
 use bit_fiddler::{set, unset, is_set, mask};
 use rand::prelude::*;
