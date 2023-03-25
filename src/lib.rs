@@ -32,3 +32,4 @@ pub mod r_3_3_3 {
 }
 
 pub mod colored_graph;
+pub mod action_matrix;
