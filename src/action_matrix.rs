@@ -60,7 +60,10 @@ mod action_matrix_initialization {
 }
 
 impl ActionMatrix {
-    pub fn slope(&self, action: Action) -> Option<&Iyy> {
+    pub fn graph(&self) -> &ColoredGraph { &self.graph }
+    pub fn actions_mut(&mut self) -> &mut PriorityQueue<Action, Iyy> { &mut self.actions }
+
+    fn slope(&self, action: Action) -> Option<&Iyy> {
         self.actions.get_priority(&action)
     }
 
@@ -208,7 +211,17 @@ impl From<&Recoloring> for Action {
 }
 
 impl ActionMatrix {
-    pub fn randomly_recolor(&mut self, rng: &mut ThreadRng) {
+
+    pub fn act(&mut self, (new_color, pos): Action) {
+        let edge = pos_to_edge(pos);
+        let old_color = self.graph.color(edge)
+            .unwrap();
+        self.recolor((new_color, pos), old_color);
+        let recoloring = Recoloring { old_color, new_color, edge };
+        self.graph.recolor(recoloring);
+    }
+
+    pub fn randomly_act(&mut self, rng: &mut ThreadRng) {
         let recoloring = self.graph.random_recoloring(rng);
         let action = Action::from(&recoloring);
         self.recolor(action, recoloring.old_color);
@@ -242,7 +255,7 @@ mod test_random_recoloring {
                     .sum();
                 assert_eq!(graph_count * choose(S[c], 2), matrix_count);
             }
-            actions.randomly_recolor(&mut rng);
+            actions.randomly_act(&mut rng);
         }
     }
 
@@ -273,7 +286,7 @@ mod test_random_recoloring {
                     assert_eq!(slope, calculated_slope)
                 }
             }
-            actions.randomly_recolor(&mut rng)
+            actions.randomly_act(&mut rng)
         }
     }
 }

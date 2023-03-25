@@ -83,6 +83,7 @@ mod math_tests {
 
 pub const C: Color = S.len();
 pub const E: usize = choose_two(N);
+#[derive(Hash, Eq, PartialEq, Clone)]
 pub struct ColoredGraph {
     neighborhoods: [[Uxx; N]; C]
 }
