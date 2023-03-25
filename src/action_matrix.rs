@@ -56,21 +56,41 @@ mod action_matrix_initialization {
 }
 
 impl ActionMatrix {
-    pub fn slope(&self, action: Action) -> Option<Iyy> {
-        self.actions.get(&action)
-            .map(|(_, &slope)| slope)
-    }
-    
-    pub fn recolor(&mut self, action: Action) {
-        self.delete(action);
-        self.add(action);
+    pub fn slope(&self, action: Action) -> Option<&Iyy> {
+        self.actions.get_priority(&action)
     }
 
-    pub fn add(&mut self, action: Action) {
+    fn remove_slope(&mut self, action: Action) -> (Action, Iyy) {
+        self.actions.remove(&action).unwrap()
+    }
+    
+    pub fn recolor(&mut self, action: Action, old_color: Color) {
+        let (_, slope) = self.remove_slope(action);
+        self.actions.push((old_color, action.1), -slope);
+        
+        let (new_color, pos) = action;
+        let column_change = 
+            self.counts[new_color][pos] - 
+            self.counts[old_color][pos];
+        for c in 0..C {
+            if c != old_color && c != new_color {
+                let action = (c, pos);
+                self.actions.change_priority_by(
+                    &action, 
+                    |slope| *slope += column_change
+                );
+            }
+        }
+
+        //self.delete(action);
+        //self.add(action);
+    }
+
+    fn add(&mut self, action: Action) {
         todo!()
     }
 
-    pub fn delete(&mut self, action: Action) {
+    fn delete(&mut self, action: Action) {
         todo!()
     }
 }
@@ -79,16 +99,15 @@ impl ActionMatrix {
 mod recolor_gradient_test {
     use super::*;
     #[test]
-    fn recolor_red_once() {
-        let mut graph = ColoredGraph::red();
-        let mut actions = ActionMatrix::from(graph);
-        actions.recolor((0, 1));
+    fn firsts_column_change() {
+        let mut actions = ActionMatrix::from(ColoredGraph::red());
+        actions.recolor((1, 0), 0);
         for c in 0..C {
             let slope = actions.slope((c, 0));
             match c {
-                0 => assert_eq!(slope, Some(-(choose(N-2, S[0]-2) as Iyy))),
+                0 => assert_eq!(slope, Some(&-(choose(N-2, S[0]-2) as Iyy))),
                 1 => assert_eq!(slope, None),
-                _ => assert_eq!(slope, Some(0))
+                _ => assert_eq!(slope, Some(&0))
             }
         }
     }
