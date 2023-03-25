@@ -25,8 +25,13 @@ pub mod r_3_3 {
 }
 
 pub mod r_3_4 {
-    pub const N: usize = 24;
+    pub const N: usize = 8;
     pub use crate::{n_leq_32::*, count_leq_2_31::*, s_3_4::*, visits_leq_2_32::*};
+}
+
+pub mod r_4_4 {
+    pub const N: usize = 17;
+    pub use crate::{n_leq_32::*, count_leq_2_31::*, s_4_5::*, visits_leq_2_32::*};
 }
 
 pub mod r_3_3_3 {

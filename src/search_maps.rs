@@ -25,10 +25,12 @@ impl ScoreKeeper {
 pub enum ScoreUpdate {
     Better,
     Worse,
-    Tie
+    Tie,
+    Done
 }
 
 impl ScoreKeeper {
+    #[must_use]
     pub fn update(&mut self, graph: &ColoredGraph) -> ScoreUpdate {
         let count = (0..C).map(|c| 
             graph.count_cliques(c, None, None)
@@ -40,8 +42,14 @@ impl ScoreKeeper {
                 self.root = graph.clone();
                 self.best_count = count;
                 println!("score improved to {count} by");
-                self.root.show_neighborhoods();
-                ScoreUpdate::Better
+                //self.root.show_neighborhoods();
+                self.root.show_matrix();
+                if count == 0 {
+                    ScoreUpdate::Done
+                }
+                else {
+                    ScoreUpdate::Better
+                }
             }
         }
     }
@@ -111,6 +119,7 @@ impl GraphData {
     }
 }
 
+#[derive(Default)]
 pub struct GraphMap {
     graphs: HashMap<ColoredGraph, GraphData>
 }
@@ -120,7 +129,7 @@ impl GraphMap {
         &mut self,
         actions: &mut ActionMatrix,
         score_keeper: &mut ScoreKeeper
-    ) -> Action {
+    ) -> Option<ScoreUpdate> {
         let graph_data = self.graphs.entry(actions.graph().clone())
             .or_insert(GraphData::default());
         let best_visited = graph_data.visited_argmax();
@@ -137,7 +146,8 @@ impl GraphMap {
                 popped_actions.push(action_queue.pop().unwrap());
             }
             else {
-                best_unvisited = Some((*action, *q_ga))
+                best_unvisited = Some((*action, *q_ga));
+                break
             }
         }
 
@@ -162,9 +172,8 @@ impl GraphMap {
         // println!("we removed {} items from the action queue... is this healthy?", popped_actions.len());
 
         actions.act(best_action);
-        score_keeper.update(actions.graph());
-
         graph_data.record(best_action, q_ga);
-        best_action
+        Some(score_keeper.update(actions.graph()))
+
     }
 }
