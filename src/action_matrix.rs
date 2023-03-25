@@ -2,6 +2,7 @@ use bit_fiddler::unset;
 use bit_iter::BitIter;
 use priority_queue::PriorityQueue;
 pub use itertools::Itertools;
+use rand::rngs::ThreadRng;
 
 use crate::colored_graph::*;
 
@@ -53,7 +54,7 @@ mod action_matrix_initialization {
         let actions = ActionMatrix::from(graph);
         for ((color, pos), slope) in actions.actions {
             assert_ne!(color, 0);
-            assert_eq!(slope, choose(N-2, S[0]-2) as Iyy);
+            assert_eq!(slope, choose(N-2, S[color]-2) as Iyy);
         }
     }
 }
@@ -153,15 +154,70 @@ mod recolor_gradient_test {
     }
 
     #[test]
-    fn deletion_change() {
+    fn one_recoloring() {
         let mut actions = ActionMatrix::from(ColoredGraph::red());
         actions.recolor((1, 0), 0);
         for (i, (u,v)) in (0..N).tuple_combinations().enumerate() {
+            let slope_0 = actions.slope((0, i));
+            let slope_1 = actions.slope((1, i));
+            
             match (u, v) {
-                (0, 1) => assert_eq!(actions.slope((0, i)), None),
-                (0, _) | (1, _) => assert_eq!(actions.slope((1, i)), Some(&(choose(N-3, S[0]-2) as Iyy))),
-                (_, _) => assert_eq!(actions.slope((1, i)), Some(&(choose(N-2, S[0]-2) as Iyy))),
+                (0, 1) => assert_eq!(slope_0, None),
+                (0, _) | (1, _) => assert_eq!(slope_1, Some(&(choose(N-3, S[0]-2) as Iyy))),
+                (_, _) => assert_eq!(slope_1, Some(&(choose(N-2, S[0]-2) as Iyy))),
             }
+
+            match (u, v) {
+                (0, 1) => assert_eq!(slope_1, Some(&-choose(N-2, S[0]-2))),
+                _ => assert_eq!(slope_0, None)
+            }
+        }
+    }
+}
+
+impl From<&Recoloring> for Action {
+    fn from(recoloring: &Recoloring) -> Self {
+        let pos = edge_to_pos(recoloring.edge);
+        (recoloring.new_color, pos)
+    }
+}
+
+impl ActionMatrix {
+    pub fn randomly_recolor(&mut self, rng: &mut ThreadRng) {
+        let recoloring = self.graph.random_recoloring(rng);
+        let action = Action::from(&recoloring);
+        self.recolor(action, recoloring.old_color);
+        self.graph.recolor(recoloring)
+    }
+}
+
+#[cfg(test)]
+mod test_random_recoloring {
+    use super::*;
+
+    #[test]
+    fn consistent_counts() {
+        let mut actions = ActionMatrix::from(ColoredGraph::red());
+        let mut rng = rand::thread_rng();
+        for _ in 0..20 {
+            for c in 0..C {
+                let graph_count = actions.graph.count_cliques(c, None, None);
+                let matrix_count: Iyy = (0..N)
+                    .tuple_combinations()
+                    .enumerate()
+                    .filter(
+                        |(_, (u, v))|
+                        {
+                            let colored_edge = ColoredEdge { color: c, edge: (*u,*v) };
+                            actions.graph.has_edge(colored_edge)
+                        })
+                    .map(|(pos, _)| {
+                        actions.counts[c][pos]
+                    })
+                    .sum();
+                assert_eq!(graph_count * choose(N-2, S[c]-2), matrix_count);
+            }
+            actions.randomly_recolor(&mut rng);
         }
     }
 }

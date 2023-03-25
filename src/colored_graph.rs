@@ -23,7 +23,7 @@ impl Recoloring {
     pub fn new_edge(&self) -> ColoredEdge { ColoredEdge { color: self.new_color, edge: self.edge } }
 }
 
-pub const fn choose(n: usize, k: usize) -> usize {
+pub const fn choose(n: usize, k: usize) -> Iyy {
     match (n, k) {
         (_, 0) => 1,
         (0, _) => 0,
@@ -61,8 +61,7 @@ mod math_tests {
     #[test]
     fn choose_two_consistent() {
         for n in 0..100 {
-            assert_eq!(choose_two(n),
-            choose(n, 2));
+            assert_eq!(choose_two(n), choose(n, 2) as usize);
         }
     }
 
@@ -141,6 +140,13 @@ impl ColoredGraph {
         self.add(recolor.new_color, recolor.edge);
     }
 
+    pub fn has_edge(&self, colored_edge: ColoredEdge) -> bool {
+        let ColoredEdge { color, edge } = colored_edge;
+        let (u, v) = edge;
+        
+        is_set!((self.bit_neighborhood(color, u)), Uxx, v)
+    }
+
     pub fn color(&self, (u, v): Edge) -> Option<Color> {
         match self.neighborhoods
             .iter()
@@ -160,11 +166,28 @@ impl ColoredGraph {
         self.bit_neighborhood(color, v)
     }
 
-    pub fn random_edge(&mut self, rng: &mut ThreadRng) -> ColoredEdge {
+    pub fn random_edge(&self, rng: &mut ThreadRng) -> ColoredEdge {
         let edge = random_edge(rng);
         let color = self.color(edge)
             .unwrap();
         ColoredEdge { color, edge }
+    }
+
+    pub fn random_recoloring(&self, rng: &mut ThreadRng) -> Recoloring {
+        let colored_edge = self.random_edge(rng);
+        let new_color = rng.gen_range(0..C-1);
+        let new_color = 
+            if new_color < colored_edge.color { new_color }
+            else {new_color + 1};
+        Recoloring { 
+            old_color: colored_edge.color,
+            new_color,
+            edge: colored_edge.edge 
+        }
+    }
+
+    pub fn randomly_recolor(&mut self, rng: &mut ThreadRng) {
+        self.recolor(self.random_recoloring(rng))
     }
 
     pub fn show_matrix(&self) {
