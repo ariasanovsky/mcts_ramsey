@@ -52,9 +52,9 @@ mod action_matrix_initialization {
     fn red_graph_action_gradients() {
         let graph = ColoredGraph::red();
         let actions = ActionMatrix::from(graph);
-        for ((color, pos), slope) in actions.actions {
+        for ((color, _), slope) in actions.actions {
             assert_ne!(color, 0);
-            assert_eq!(slope, choose(N-2, S[color]-2) as Iyy);
+            assert_eq!(slope, choose(N-2, S[0]-2) as Iyy);
         }
     }
 }
@@ -116,7 +116,12 @@ impl ActionMatrix {
         }
 
         if s < 4 { return }
-        todo!("implement s > 3 block")
+        
+        for (w, x) in BitIter::from(neighbors_uv).tuple_combinations() {
+            let candidates = neighbors_uv & self.graph.common_neighborhood(color, w, x);
+            let count_uvwx = self.graph.count_cliques(color, Some(s-4), Some(candidates));
+            self.adjust_count::<IS_DELETION>(color, (w,x), count_uvwx)
+        }
     }
 
     fn adjust_count<const IS_DELETION: bool>
