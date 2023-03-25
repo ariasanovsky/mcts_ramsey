@@ -70,7 +70,7 @@ impl ActionMatrix {
     
     pub fn recolor(&mut self, action: Action, old_color: Color) {
         let (_, slope) = self.remove_slope(action);
-        self.actions.push(action, -slope);
+        self.actions.push((old_color, action.1), -slope);
         
         let (new_color, pos) = action;
         let column_change = 
@@ -88,7 +88,7 @@ impl ActionMatrix {
 
         let edge = pos_to_edge(pos);
         self.delete(old_color, edge);
-        //self.add(action);
+        //self.add(new_color, edge);
     }
 
     fn delete(&mut self, old_color: Color, edge: Edge) {
@@ -149,7 +149,25 @@ impl ActionMatrix {
     }
 
     fn increment_count(&mut self, color: Color, edge: Edge, amount: Iyy) {
-        todo!()
+        let pos = edge_to_pos(edge);
+        self.counts[color][pos] += amount;
+        let curr_color = self.graph.color(edge).unwrap();
+        if curr_color == color {
+            for other_color in 0..C {
+                if other_color != color {
+                    self.actions.change_priority_by(
+                        &(other_color, pos), 
+                        |slope| *slope += amount
+                    );
+                }
+            }
+        }
+        else {
+            self.actions.change_priority_by(
+                &(color, pos),
+                |slope| *slope -= amount
+            );
+        }
     }
 }
 
@@ -165,13 +183,13 @@ mod recolor_gradient_test {
             let slope_1 = actions.slope((1, i));
             
             match (u, v) {
-                (0, 1) => assert_eq!(slope_0, None),
+                (0, 1) => assert_eq!(slope_1, None),
                 (0, _) | (1, _) => assert_eq!(slope_1, Some(&(choose(N-3, S[0]-2) as Iyy))),
                 (_, _) => assert_eq!(slope_1, Some(&(choose(N-2, S[0]-2) as Iyy))),
             }
 
             match (u, v) {
-                (0, 1) => assert_eq!(slope_1, Some(&-choose(N-2, S[0]-2))),
+                (0, 1) => assert_eq!(slope_0, Some(&-choose(N-2, S[0]-2))),
                 _ => assert_eq!(slope_0, None)
             }
         }
