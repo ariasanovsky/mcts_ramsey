@@ -95,6 +95,37 @@ impl ActionMatrix {
         self.toggle::<true>(old_color, edge)
     }
 
+    fn add(&mut self, new_color: Color, edge: Edge) {
+        self.toggle::<false>(new_color, edge)
+    }
+
+    fn toggle<const IS_DELETION: bool>
+    (&mut self, color: Color, (u, v): Edge)
+    {
+        if !IS_DELETION { todo!() }
+
+        let s = S[color];
+        if s < 3 { return }
+
+        let neighbors_uv = self.graph.common_neighborhood(color, u, v);
+        for (u, v) in [(u, v), (v, u)] {
+            let neighbors_u = unset!((self.graph.bit_neighborhood(color, u)), Uxx, v);
+            for w in BitIter::from(neighbors_u) {
+                let neighbors_uvw = neighbors_uv & self.graph.bit_neighborhood(color, w);
+                let count_uvw = self.graph.count_cliques(color, Some(s-3), Some(neighbors_uvw));
+                if IS_DELETION {
+                    self.decrement_count(color, (v,w), count_uvw)
+                }
+                else {
+                    self.increment_count(color, (v,w), count_uvw)
+                }
+            }
+        }
+
+        if s < 4 { return }
+        todo!()
+    }
+
     fn decrement_count(&mut self, color: Color, edge: Edge, amount: Iyy) {
         let pos = edge_to_pos(edge);
         self.counts[color][pos] -= amount;
@@ -116,30 +147,8 @@ impl ActionMatrix {
             );
         }
     }
-    
-    fn add(&mut self, new_color: Color, edge: Edge) {
-        self.toggle::<false>(new_color, edge)
-    }
 
-    fn toggle<const IS_DELETION: bool>
-    (&mut self, color: Color, (u, v): Edge)
-    {
-        if !IS_DELETION { todo!() }
-
-        let s = S[color];
-        if s < 3 { return }
-
-        let neighbors_uv = self.graph.common_neighborhood(color, u, v);
-        for (u, v) in [(u, v), (v, u)] {
-            let neighbors_u = unset!((self.graph.bit_neighborhood(color, u)), Uxx, v);
-            for w in BitIter::from(neighbors_u) {
-                let neighbors_uvw = neighbors_uv & self.graph.bit_neighborhood(color, w);
-                let count_uvw = self.graph.count_cliques(color, Some(s-3), Some(neighbors_uvw));
-                self.decrement_count(color, (v,w), count_uvw);
-            }
-        }
-
-        if s < 4 { return }
+    fn increment_count(&mut self, color: Color, edge: Edge, amount: Iyy) {
         todo!()
     }
 }
