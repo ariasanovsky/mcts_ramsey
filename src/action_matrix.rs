@@ -88,7 +88,7 @@ impl ActionMatrix {
 
         let edge = pos_to_edge(pos);
         self.delete(old_color, edge);
-        //self.add(new_color, edge);
+        self.add(new_color, edge);
     }
 
     fn delete(&mut self, old_color: Color, edge: Edge) {
@@ -102,8 +102,6 @@ impl ActionMatrix {
     fn toggle<const IS_DELETION: bool>
     (&mut self, color: Color, (u, v): Edge)
     {
-        if !IS_DELETION { todo!() }
-
         let s = S[color];
         if s < 3 { return }
 
@@ -113,17 +111,18 @@ impl ActionMatrix {
             for w in BitIter::from(neighbors_u) {
                 let neighbors_uvw = neighbors_uv & self.graph.bit_neighborhood(color, w);
                 let count_uvw = self.graph.count_cliques(color, Some(s-3), Some(neighbors_uvw));
-                if IS_DELETION {
-                    self.decrement_count(color, (v,w), count_uvw)
-                }
-                else {
-                    self.increment_count(color, (v,w), count_uvw)
-                }
+                self.adjust_count::<IS_DELETION>(color, (v,w), count_uvw)
             }
         }
 
         if s < 4 { return }
-        todo!()
+        todo!("implement s > 3 block")
+    }
+
+    fn adjust_count<const IS_DELETION: bool>
+    (&mut self, color: Color, edge: Edge, amount: Iyy) {
+        if IS_DELETION { self.decrement_count(color, edge, amount) }
+        else           { self.increment_count(color, edge, amount) }
     }
 
     fn decrement_count(&mut self, color: Color, edge: Edge, amount: Iyy) {
@@ -220,7 +219,7 @@ mod test_random_recoloring {
     fn consistent_counts() {
         let mut actions = ActionMatrix::from(ColoredGraph::red());
         let mut rng = rand::thread_rng();
-        for _ in 0..3 {
+        for _ in 0..100 {
             for c in 0..C {
                 let graph_count = actions.graph.count_cliques(c, None, None);
                 let matrix_count: Iyy = (0..N)
