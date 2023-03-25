@@ -1,3 +1,5 @@
+use bit_fiddler::unset;
+use bit_iter::BitIter;
 use priority_queue::PriorityQueue;
 pub use itertools::Itertools;
 
@@ -49,7 +51,8 @@ mod action_matrix_initialization {
     fn red_graph_action_gradients() {
         let graph = ColoredGraph::red();
         let actions = ActionMatrix::from(graph);
-        for (_, slope) in actions.actions {
+        for ((color, pos), slope) in actions.actions {
+            assert_ne!(color, 0);
             assert_eq!(slope, choose(N-2, S[0]-2) as Iyy);
         }
     }
@@ -66,7 +69,7 @@ impl ActionMatrix {
     
     pub fn recolor(&mut self, action: Action, old_color: Color) {
         let (_, slope) = self.remove_slope(action);
-        self.actions.push((old_color, action.1), -slope);
+        self.actions.push(action, -slope);
         
         let (new_color, pos) = action;
         let column_change = 
@@ -82,15 +85,52 @@ impl ActionMatrix {
             }
         }
 
-        //self.delete(action);
+        let edge = pos_to_edge(pos);
+        self.delete(old_color, edge);
         //self.add(action);
     }
 
-    fn add(&mut self, action: Action) {
+    fn delete(&mut self, old_color: Color, (u, v): Edge) {
+        let s = S[old_color];
+        if s < 3 { return }
+
+        let neighbors_uv = self.graph.common_neighborhood(old_color, u, v);
+        for (u, v) in [(u, v), (v, u)] {
+            let neighbors_u = unset!((self.graph.bit_neighborhood(old_color, u)), Uxx, v);
+            for w in BitIter::from(neighbors_u) {
+                let neighbors_uvw = neighbors_uv & self.graph.bit_neighborhood(old_color, w);
+                let count_uvw = self.graph.count_cliques(old_color, Some(s-3), Some(neighbors_uvw));
+                self.decrement_count(old_color, (v,w), count_uvw);
+            }
+        }
+
+        if s < 4 { return }
         todo!()
     }
 
-    fn delete(&mut self, action: Action) {
+    fn decrement_count(&mut self, color: Color, edge: Edge, amount: Iyy) {
+        let pos = edge_to_pos(edge);
+        self.counts[color][pos] -= amount;
+        let curr_color = self.graph.color(edge).unwrap();
+        if curr_color == color {
+            for other_color in 0..C {
+                if other_color != color {
+                    self.actions.change_priority_by(
+                        &(other_color, pos), 
+                        |slope| *slope -= amount
+                    );
+                }
+            }
+        }
+        else {
+            self.actions.change_priority_by(
+                &(color, pos),
+                |slope| *slope += amount
+            );
+        }
+    }
+    
+    fn add(&mut self, new_color: Color, (u, v): Edge) {
         todo!()
     }
 }
@@ -108,6 +148,19 @@ mod recolor_gradient_test {
                 0 => assert_eq!(slope, Some(&-(choose(N-2, S[0]-2) as Iyy))),
                 1 => assert_eq!(slope, None),
                 _ => assert_eq!(slope, Some(&0))
+            }
+        }
+    }
+
+    #[test]
+    fn deletion_change() {
+        let mut actions = ActionMatrix::from(ColoredGraph::red());
+        actions.recolor((1, 0), 0);
+        for (i, (u,v)) in (0..N).tuple_combinations().enumerate() {
+            match (u, v) {
+                (0, 1) => assert_eq!(actions.slope((0, i)), None),
+                (0, _) | (1, _) => assert_eq!(actions.slope((1, i)), Some(&(choose(N-3, S[0]-2) as Iyy))),
+                (_, _) => assert_eq!(actions.slope((1, i)), Some(&(choose(N-2, S[0]-2) as Iyy))),
             }
         }
     }

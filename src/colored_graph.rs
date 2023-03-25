@@ -35,8 +35,26 @@ pub const fn choose_two(n: usize) -> usize {
     n*(n+1)/2-n
 }
 
+pub fn pos_to_edge(pos: usize) -> Edge {
+    let mut u = 0;
+    let mut pos_u_n_minus_1 = N - 2;
+    while pos_u_n_minus_1 < pos {
+        pos_u_n_minus_1 += N - 2 - u;
+        u += 1;
+    }
+    let v = N - 1 - (pos_u_n_minus_1 - pos);
+    (u, v)
+}
+
+pub fn edge_to_pos((u, v): Edge) -> usize {
+    if u < v { u*(2*N-1-u)/2 + (v-u-1) }
+    else     { v*(2*N-1-v)/2 + (u-v-1) }
+}
+
 #[cfg(test)]
 mod math_tests {
+
+    use itertools::Itertools;
 
     use super::*;
 
@@ -45,6 +63,21 @@ mod math_tests {
         for n in 0..100 {
             assert_eq!(choose_two(n),
             choose(n, 2));
+        }
+    }
+
+    #[test]
+    fn pos_to_edge_test() {
+        for (i, (u, v)) in (0..N).tuple_combinations().enumerate() {
+            assert_eq!(pos_to_edge(i), (u, v));
+        }
+    }
+
+    #[test]
+    fn edge_to_pos_test() {
+        for (i, (u, v)) in (0..N).tuple_combinations().enumerate() {
+            assert_eq!(edge_to_pos((u,v)), i);
+            assert_eq!(edge_to_pos((v,u)), i);
         }
     }
 }
@@ -118,11 +151,11 @@ impl ColoredGraph {
         }
     }
 
-    fn bit_neighborhood(&self, color: Color, u: Vertex) -> Uxx {
+    pub fn bit_neighborhood(&self, color: Color, u: Vertex) -> Uxx {
         self.neighborhoods[color][u]
     }
 
-    fn common_neighborhood(&self, color: Color, u: Vertex, v: Vertex) -> Uxx {
+    pub fn common_neighborhood(&self, color: Color, u: Vertex, v: Vertex) -> Uxx {
         self.bit_neighborhood(color, u) & 
         self.bit_neighborhood(color, v)
     }
