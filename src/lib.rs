@@ -37,3 +37,4 @@ pub mod r_3_3_3 {
 pub mod colored_graph;
 pub mod action_matrix;
 pub mod search_maps;
+pub mod learning_loop;

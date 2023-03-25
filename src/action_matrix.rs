@@ -9,6 +9,7 @@ use crate::colored_graph::*;
 pub type EdgePos = usize;
 pub type Action = (Color, EdgePos);
 
+#[derive(Clone)]
 pub struct ActionMatrix {
     counts: [[Iyy; E]; C],
     graph: ColoredGraph,
@@ -62,11 +63,7 @@ mod action_matrix_initialization {
 impl ActionMatrix {
     pub fn graph(&self) -> &ColoredGraph { &self.graph }
     pub fn actions_mut(&mut self) -> &mut PriorityQueue<Action, Iyy> { &mut self.actions }
-
-    fn slope(&self, action: Action) -> Option<&Iyy> {
-        self.actions.get_priority(&action)
-    }
-
+    
     fn remove_slope(&mut self, action: Action) -> (Action, Iyy) {
         self.actions.remove(&action).unwrap()
     }
@@ -181,6 +178,13 @@ impl ActionMatrix {
 #[cfg(test)]
 mod recolor_gradient_test {
     use super::*;
+
+    impl ActionMatrix {
+        pub fn slope(&self, action: Action) -> Option<&Iyy> {
+            self.actions.get_priority(&action)
+        }
+    }
+
     #[test]
     fn one_recoloring() {
         let mut actions = ActionMatrix::from(ColoredGraph::red());

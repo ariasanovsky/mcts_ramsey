@@ -18,6 +18,10 @@ impl From<ColoredGraph> for ScoreKeeper {
     }
 }
 
+impl ScoreKeeper {
+    pub fn root(&self) -> &ColoredGraph { &self.root }
+}
+
 pub enum ScoreUpdate {
     Better,
     Worse,
@@ -62,7 +66,16 @@ impl Default for GraphData {
 const C_NOISE: f64 = 0.1;
 
 impl GraphData {
-    fn default_nu(&self) -> f64 {
+    pub fn record(&mut self, action: Action, q_ga: Option<Iyy>) {
+        self.n_visits += 1;
+        let res = self.action_map.actions.get_mut(&action);
+        match res {
+            Some((_, n_ga)) => *n_ga += 1,
+            None => {self.action_map.actions.insert(action, (q_ga.unwrap(), 1));}
+        }
+    }
+    
+    pub fn default_nu(&self) -> f64 {
         C_NOISE * (self.n_visits as f64).sqrt()
     }
     
@@ -132,17 +145,17 @@ impl GraphMap {
             action_queue.push(action, q_ga);
         }
 
-        let best_action = match (best_visited, best_unvisited) {
+        let (best_action, q_ga) = match (best_visited, best_unvisited) {
             (None, None) => panic!("Couldn't find a best visited or unvisited action!"),
-            (None, Some((action, _))) |
-            (Some((action, _)), None) => action,
+            (None, Some((action, q_ga))) => (action, Some(q_ga)),
+            (Some((action, _)), None) => (action, None),
             (Some((v_action, mu_ga)), 
             Some((u_action, q_ga))) => {
                 if mu_ga >= q_ga as f64 + default_nu {
-                    v_action
+                    (v_action, None)
                 }
                 else {
-                    u_action
+                    (u_action, Some(q_ga))
                 }
             }
         };
@@ -150,6 +163,8 @@ impl GraphMap {
 
         actions.act(best_action);
         score_keeper.update(actions.graph());
+
+        graph_data.record(best_action, q_ga);
         best_action
     }
 }
