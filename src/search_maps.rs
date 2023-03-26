@@ -13,7 +13,7 @@ impl From<ColoredGraph> for ScoreKeeper {
     fn from(graph: ColoredGraph) -> Self {
         let count = (0..C)
             .map(|c| graph.count_cliques(c, None, None))
-            .sum();
+            .sum();     // todo("dynamic tallying")
         ScoreKeeper { root: graph, best_count: count }
     }
 }
@@ -71,7 +71,7 @@ impl Default for GraphData {
     }
 }
 
-const C_NOISE: f64 = 0.1;
+const C_NOISE: f64 = 0.2;   // todo("what to do with this value?")
 
 impl GraphData {
     pub fn record(&mut self, action: Action, q_ga: Option<Iyy>) {
@@ -135,7 +135,7 @@ impl GraphMap {
         let best_visited = graph_data.visited_argmax();
         let default_nu = graph_data.default_nu();
 
-        // todo!() would be nice to implement this with a general predicate in the priority_queue crate
+        // todo!("would be nice to implement this with a general predicate in the priority_queue crate")
         let mut best_unvisited: Option<(Action, Iyy)> = None;
         let action_queue = actions.actions_mut();
         let mut popped_actions = vec![];

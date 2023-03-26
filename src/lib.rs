@@ -16,6 +16,8 @@ pub mod s_3_5 { pub const S: [usize; 2] = [3, 5]; }
 pub mod s_4_4 { pub const S: [usize; 2] = [4, 4]; }
 pub mod s_4_5 { pub const S: [usize; 2] = [4, 5]; }
 pub mod s_5_5 { pub const S: [usize; 2] = [5, 5]; }
+pub mod s_5_6 { pub const S: [usize; 2] = [5, 6]; }
+pub mod s_6_6 { pub const S: [usize; 2] = [6, 6]; }
 
 pub mod s_3_3_3 { pub const S: [usize; 3] = [3, 3, 3]; }
 
@@ -31,7 +33,27 @@ pub mod r_3_4 {
 
 pub mod r_4_4 {
     pub const N: usize = 17;
+    pub use crate::{n_leq_32::*, count_leq_2_31::*, s_4_4::*, visits_leq_2_32::*};
+}
+
+pub mod r_4_5 {
+    pub const N: usize = 24;
     pub use crate::{n_leq_32::*, count_leq_2_31::*, s_4_5::*, visits_leq_2_32::*};
+}
+
+pub mod r_5_5 {
+    pub const N: usize = 42;
+    pub use crate::{n_leq_64::*, count_leq_2_31::*, s_5_5::*, visits_leq_2_64::*};
+}
+
+pub mod r_5_6 {
+    pub const N: usize = 58;
+    pub use crate::{n_leq_64::*, count_leq_2_31::*, s_5_6::*, visits_leq_2_64::*};
+}
+
+pub mod r_6_6 {
+    pub const N: usize = 102;
+    pub use crate::{n_leq_128::*, count_leq_2_31::*, s_6_6::*, visits_leq_2_64::*};
 }
 
 pub mod r_3_3_3 {
