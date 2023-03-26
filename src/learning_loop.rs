@@ -1,7 +1,8 @@
 use crate::{search_maps::*, action_matrix::*, colored_graph::*};
 
 pub fn play_episode(g_map: &mut GraphMap, score_keeper: &mut ScoreKeeper, budget: Uzz) -> Option<ScoreUpdate> {
-    let mut action_matrix = score_keeper.root().clone();
+    let mut rng = rand::thread_rng();
+    let mut action_matrix = score_keeper.random_root(&mut rng).clone();
     /* let mut seen_edges = [false; E]; */
     // todo("clone the whole ActionMatrix instead?")
     for _ in 0..E {
@@ -28,17 +29,24 @@ pub fn play_epochs(g_map: &mut GraphMap, score_keeper: &mut ScoreKeeper, max_bud
     for budget in 1..max_budget {
         println!("==== EPOCH ==== {budget}");
         match play_epoch(g_map, score_keeper, budget, n_episodes) {
-            Some(ScoreUpdate::Done) => return,
+            Some(ScoreUpdate::Done) => {
+                println!("R{S:?} > {N}");
+                return
+            },
             _ => {}
         }
     }
 }
 
+use rand::distributions::WeightedIndex;
+
 pub fn search(max_budget: Uzz, n_episodes: Uzz) {
-    let mut g_map = GraphMap::default();
     let mut rng = rand::thread_rng();
-    let graph = ColoredGraph::uniformly_random(&mut rng);
+    let dist = WeightedIndex::new(&P).unwrap();
+    let graph = ColoredGraph::random(&mut rng, dist);
     let actions = ActionMatrix::from(graph);
+    
     let mut score_keeper = ScoreKeeper::from(actions);
+    let mut g_map = GraphMap::default();
     play_epochs(&mut g_map, &mut score_keeper, max_budget, n_episodes);
 }

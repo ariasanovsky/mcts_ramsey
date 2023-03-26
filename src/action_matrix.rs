@@ -335,3 +335,9 @@ mod test_random_recoloring {
         }
     }
 }
+
+impl PartialEq for ActionMatrix {
+    fn eq(&self, other: &Self) -> bool {
+        self.graph == other.graph
+    }
+}

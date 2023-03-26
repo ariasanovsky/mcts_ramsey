@@ -1,8 +1,9 @@
-pub use crate::r_6_6::*;
+pub use crate::r_4_6::*;
 
 use bit_fiddler::{set, unset, is_set, mask};
 use itertools::Itertools;
 use rand::prelude::*;
+use rand::distributions::WeightedIndex;
 use bit_iter::BitIter;
 
 pub type Color = usize;
@@ -132,6 +133,17 @@ impl ColoredGraph {
     }
 
     pub fn uniformly_random(rng: &mut ThreadRng) -> ColoredGraph {
+        let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
+        for (u, v) in (0..N).tuple_combinations() {
+            let c = rng.gen_range(0..C);
+            neighborhoods[c][u] = set!((neighborhoods[c][u]), Uxx, v);
+            neighborhoods[c][v] = set!((neighborhoods[c][v]), Uxx, u);
+        }
+        
+        ColoredGraph { neighborhoods }
+    }
+
+    pub fn random(rng: &mut ThreadRng, dist: WeightedIndex<i32>) -> ColoredGraph {
         let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
         for (u, v) in (0..N).tuple_combinations() {
             let c = rng.gen_range(0..C);

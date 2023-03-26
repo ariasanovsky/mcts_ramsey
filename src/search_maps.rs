@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use rand::{rngs::ThreadRng, seq::SliceRandom};
+
 use crate::{
     colored_graph::*,
     action_matrix::*
@@ -7,26 +9,29 @@ use crate::{
 const C_NOISE: f64 = 0.6;   // todo("what to do with this value?")
 
 pub struct ScoreKeeper {
-    root: ActionMatrix,
+    roots: Vec<ActionMatrix>,
     best_count: Iyy
 }
 
 impl From<ActionMatrix> for ScoreKeeper {
     fn from(actions: ActionMatrix) -> Self {
         let count = actions.total();
-        ScoreKeeper { root: actions, best_count: count }
+        ScoreKeeper { roots: vec![actions], best_count: count }
     }
 }
 
 impl ScoreKeeper {
-    pub fn root(&self) -> &ActionMatrix { &self.root }
+    pub fn random_root(&self, rng: &mut ThreadRng) -> &ActionMatrix { 
+        self.roots.choose(rng).unwrap()
+    }
 }
 
 pub enum ScoreUpdate {
+    Done,
     Better,
-    Worse,
     Tie,
-    Done
+    Known,
+    Worse
 }
 
 impl ScoreKeeper {
@@ -35,14 +40,26 @@ impl ScoreKeeper {
         let count = actions.total();
         match self.best_count.cmp(&count) {
             std::cmp::Ordering::Less => ScoreUpdate::Worse,
-            std::cmp::Ordering::Equal => ScoreUpdate::Tie,
+            std::cmp::Ordering::Equal => {
+                if !self.roots.contains(actions) {
+                    self.roots.push(actions.clone());
+                    if self.roots.len() > 0 {
+                        print!("\r{} minima... ", self.roots.len())
+                    }
+                    ScoreUpdate::Tie
+                }
+                else {
+                    ScoreUpdate::Known
+                }
+            },
             std::cmp::Ordering::Greater => {
-                self.root = actions.clone();
+                self.roots = vec![actions.clone()];
                 self.best_count = count;
                 println!("score improved to {count} by");
                 //self.root.show_neighborhoods();
-                self.root.graph().show_matrix();
+                self.roots[0].graph().show_matrix();
                 println!();
+                print!("\r{} minimum... ", self.roots.len());
                 if count == 0 {
                     ScoreUpdate::Done
                 }
