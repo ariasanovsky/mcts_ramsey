@@ -4,22 +4,22 @@ use crate::{
     action_matrix::*
 };
 
+const C_NOISE: f64 = 0.6;   // todo("what to do with this value?")
+
 pub struct ScoreKeeper {
-    root: ColoredGraph,
+    root: ActionMatrix,
     best_count: Iyy
 }
 
-impl From<ColoredGraph> for ScoreKeeper {
-    fn from(graph: ColoredGraph) -> Self {
-        let count = (0..C)
-            .map(|c| graph.count_cliques(c, None, None))
-            .sum();     // todo("dynamic tallying")
-        ScoreKeeper { root: graph, best_count: count }
+impl From<ActionMatrix> for ScoreKeeper {
+    fn from(actions: ActionMatrix) -> Self {
+        let count = actions.total();
+        ScoreKeeper { root: actions, best_count: count }
     }
 }
 
 impl ScoreKeeper {
-    pub fn root(&self) -> &ColoredGraph { &self.root }
+    pub fn root(&self) -> &ActionMatrix { &self.root }
 }
 
 pub enum ScoreUpdate {
@@ -31,19 +31,18 @@ pub enum ScoreUpdate {
 
 impl ScoreKeeper {
     #[must_use]
-    pub fn update(&mut self, graph: &ColoredGraph) -> ScoreUpdate {
-        let count = (0..C).map(|c| 
-            graph.count_cliques(c, None, None)
-        ).sum(); // todo("make function && dynamically track score...")
+    pub fn update(&mut self, actions: &ActionMatrix) -> ScoreUpdate {
+        let count = actions.total();
         match self.best_count.cmp(&count) {
             std::cmp::Ordering::Less => ScoreUpdate::Worse,
             std::cmp::Ordering::Equal => ScoreUpdate::Tie,
             std::cmp::Ordering::Greater => {
-                self.root = graph.clone();
+                self.root = actions.clone();
                 self.best_count = count;
                 println!("score improved to {count} by");
                 //self.root.show_neighborhoods();
-                self.root.show_matrix();
+                self.root.graph().show_matrix();
+                println!();
                 if count == 0 {
                     ScoreUpdate::Done
                 }
@@ -70,8 +69,6 @@ impl Default for GraphData {
         Self { n_visits: 0, action_map: Default::default() }
     }
 }
-
-const C_NOISE: f64 = 0.2;   // todo("what to do with this value?")
 
 impl GraphData {
     pub fn record(&mut self, action: Action, q_ga: Option<Iyy>) {
@@ -101,9 +98,10 @@ impl GraphData {
         )
     }
 
-    pub fn visited_argmax(&self) -> Option<(Action, f64)> {
+    pub fn visited_argmax(&self, /* seen_edges: &[bool; E]*/ ) -> Option<(Action, f64)> {
         let mut argmax = None;
         for action in self.action_map.actions.keys() {
+            /* if seen_edges[action.1] { continue } */
             let mu = self.mu(action)
                 .unwrap();
             match argmax {
@@ -128,52 +126,58 @@ impl GraphMap {
     pub fn next_action(
         &mut self,
         actions: &mut ActionMatrix,
-        score_keeper: &mut ScoreKeeper
+        score_keeper: &mut ScoreKeeper,
+        // seen_edges: &mut [bool; E]
     ) -> Option<ScoreUpdate> {
         let graph_data = self.graphs.entry(actions.graph().clone())
             .or_insert(GraphData::default());
-        let best_visited = graph_data.visited_argmax();
+        let best_visited = graph_data.visited_argmax(); //seen_edges);
         let default_nu = graph_data.default_nu();
 
         // todo!("would be nice to implement this with a general predicate in the priority_queue crate")
-        let mut best_unvisited: Option<(Action, Iyy)> = None;
         let action_queue = actions.actions_mut();
         let mut popped_actions = vec![];
-        loop {
-            let Some((action, q_ga)) = action_queue.peek()
-                else { break };
-            if graph_data.action_map.actions.contains_key(action) { // todo!("make a seen function")
-                popped_actions.push(action_queue.pop().unwrap());
-            }
-            else {
-                best_unvisited = Some((*action, *q_ga));
-                break
-            }
-        }
 
-        while let Some((action, q_ga)) = popped_actions.pop() {
-            action_queue.push(action, q_ga);
-        }
+        let (best_action, q_ga) = loop {
+            let best_unvisited: Option<(Action, Iyy)> = loop {
+                let Some((action, q_ga)) = action_queue.peek()
+                    else { break None };
+                if graph_data.action_map.actions.contains_key(action) { // todo!("make a seen function")
+                    popped_actions.push(action_queue.pop().unwrap());
+                }
+                else { // if !seen_edges[action.1] {
+                    break Some((*action, *q_ga))
+                }
+            };
 
-        let (best_action, q_ga) = match (best_visited, best_unvisited) {
-            (None, None) => panic!("Couldn't find a best visited or unvisited action!"),
-            (None, Some((action, q_ga))) => (action, Some(q_ga)),
-            (Some((action, _)), None) => (action, None),
-            (Some((v_action, mu_ga)), 
-            Some((u_action, q_ga))) => {
-                if mu_ga >= q_ga as f64 + default_nu {
-                    (v_action, None)
-                }
-                else {
-                    (u_action, Some(q_ga))
-                }
+            while let Some((action, q_ga)) = popped_actions.pop() {
+                action_queue.push(action, q_ga);
             }
+
+            match (best_visited, best_unvisited) {
+                (None, None) => {
+                    // for pos in 0..E { seen_edges[pos] = false }
+                    // continue
+                    panic!("Couldn't find an action!")
+                }
+                (None, Some((action, q_ga))) => break (action, Some(q_ga)),
+                (Some((action, _)), None) => break (action, None),
+                (Some((v_action, mu_ga)), 
+                Some((u_action, q_ga))) => {
+                    if mu_ga >= q_ga as f64 + default_nu {
+                        break (v_action, None)
+                    }
+                    else {
+                        break (u_action, Some(q_ga))
+                    }
+                }
+            };
         };
         // println!("we removed {} items from the action queue... is this healthy?", popped_actions.len());
-
+        // seen_edges[best_action.1] = true;
         actions.act(best_action);
         graph_data.record(best_action, q_ga);
-        Some(score_keeper.update(actions.graph()))
+        Some(score_keeper.update(actions))
 
     }
 }

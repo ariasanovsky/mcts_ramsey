@@ -1,4 +1,4 @@
-pub use crate::r_3_3_3::*;
+pub use crate::r_6_6::*;
 
 use bit_fiddler::{set, unset, is_set, mask};
 use itertools::Itertools;
@@ -96,6 +96,12 @@ pub fn random_edge(rng: &mut ThreadRng) -> Edge {
 }
 
 impl ColoredGraph {
+    pub fn score(&self) -> Iyy {
+        (0..C)
+        .map(|c| self.count_cliques(c, None, None))
+        .sum()
+    }
+    
     pub fn count_cliques(&self, color: Color, s: Option<usize>, candidates: Option<Uxx>) -> Iyy {
         let s = s.unwrap_or(S[color]);
         if s == 0 { return 1 }
@@ -232,7 +238,7 @@ mod tests {
     #[test]
     fn only_red_cliques() {
         let red = ColoredGraph::red();
-        assert_eq!(choose(N, S[0]) as Iyy,
+        assert_eq!(choose(N, S[0]),
             red.count_cliques(0, None, None));
         for c in 1..C {
             assert_eq!(0,

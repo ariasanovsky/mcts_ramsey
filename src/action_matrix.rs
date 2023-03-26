@@ -13,18 +13,21 @@ pub type Action = (Color, EdgePos);
 pub struct ActionMatrix {
     counts: [[Iyy; E]; C],
     graph: ColoredGraph,
-    actions: PriorityQueue<Action, Iyy>
+    actions: PriorityQueue<Action, Iyy>,
+    totals: [Iyy; C]
 }
 
 impl From<ColoredGraph> for ActionMatrix {
     fn from(graph: ColoredGraph) -> Self {
         let mut counts: [[Iyy; E]; C] = [[0; E]; C];
         let mut actions: PriorityQueue<Action, Iyy> = Default::default();
+        let mut totals: [Iyy; C] = [0; C];
         for (pos, (u, v)) in (0..N)
             .tuple_combinations().enumerate()
         {
             let old_color = graph.color((u, v)).unwrap();
             let old_count = graph.count_edge_cliques(old_color, (u,v));
+            totals[old_color] += old_count;
             counts[old_color][pos] = old_count;
             for new_color in 0..C {
                 if new_color != old_color {
@@ -34,7 +37,12 @@ impl From<ColoredGraph> for ActionMatrix {
                 }
             }
         }
-        ActionMatrix { counts, graph, actions }
+
+        for c in 0..C {
+            totals[c] /= choose(S[c], 2)
+        }
+
+        ActionMatrix { counts, graph, actions, totals }
     }
 }
 
@@ -55,7 +63,7 @@ mod action_matrix_initialization {
         let actions = ActionMatrix::from(graph);
         for ((color, _), slope) in actions.actions {
             assert_ne!(color, 0);
-            assert_eq!(slope, choose(N-2, S[0]-2) as Iyy);
+            assert_eq!(slope, choose(N-2, S[0]-2));
         }
     }
 }
@@ -89,6 +97,9 @@ impl ActionMatrix {
         let edge = pos_to_edge(pos);
         self.delete(old_color, edge);
         self.add(new_color, edge);
+
+        self.totals[old_color] -= self.counts[old_color][pos];
+        self.totals[new_color] += self.counts[new_color][pos];
     }
 
     fn delete(&mut self, old_color: Color, edge: Edge) {
@@ -195,8 +206,8 @@ mod recolor_gradient_test {
             
             match (u, v) {
                 (0, 1) => assert_eq!(slope_1, None),
-                (0, _) | (1, _) => assert_eq!(slope_1, Some(&(choose(N-3, S[0]-2) as Iyy))),
-                (_, _) => assert_eq!(slope_1, Some(&(choose(N-2, S[0]-2) as Iyy))),
+                (0, _) | (1, _) => assert_eq!(slope_1, Some(&choose(N-3, S[0]-2))),
+                (_, _) => assert_eq!(slope_1, Some(&choose(N-2, S[0]-2))),
             }
 
             match (u, v) {
@@ -215,6 +226,25 @@ impl From<&Recoloring> for Action {
 }
 
 impl ActionMatrix {
+
+    pub fn score(&self) -> Iyy {
+        let mut score: Iyy = 0;
+        for color in 0..C {
+            let mut color_score: Iyy = 0;
+            for (pos, (u,v)) in (0..N).tuple_combinations().enumerate() {
+                let colored_edge = ColoredEdge { color, edge: (u, v) };
+                if self.graph.has_edge(colored_edge) {
+                    color_score += self.counts[color][pos]
+                }
+            }
+            score += color_score / choose(S[color], 2)
+        };
+        score
+    }
+
+    pub fn total(&self) -> Iyy {
+        self.totals.iter().sum()
+    }
 
     pub fn act(&mut self, (new_color, pos): Action) {
         let edge = pos_to_edge(pos);
@@ -290,6 +320,17 @@ mod test_random_recoloring {
                     assert_eq!(slope, calculated_slope)
                 }
             }
+            actions.randomly_act(&mut rng)
+        }
+    }
+
+    #[test]
+    fn consistent_scores() {
+        let mut actions = ActionMatrix::from(ColoredGraph::red());
+        let mut rng = rand::thread_rng();
+        for _ in 0..100 {
+            assert_eq!(actions.score(), actions.graph.score());
+            assert_eq!(actions.score(), actions.total());
             actions.randomly_act(&mut rng)
         }
     }

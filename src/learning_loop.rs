@@ -1,10 +1,11 @@
-use crate::{search_maps::*, action_matrix::*, colored_graph::{Uzz, ColoredGraph}};
+use crate::{search_maps::*, action_matrix::*, colored_graph::*};
 
 pub fn play_episode(g_map: &mut GraphMap, score_keeper: &mut ScoreKeeper, budget: Uzz) -> Option<ScoreUpdate> {
-    let mut action_matrix = ActionMatrix::from(score_keeper.root().clone());
+    let mut action_matrix = score_keeper.root().clone();
+    /* let mut seen_edges = [false; E]; */
     // todo("clone the whole ActionMatrix instead?")
-    for _ in 0..budget {
-        match g_map.next_action(&mut action_matrix, score_keeper) {
+    for _ in 0..E {
+        match g_map.next_action(&mut action_matrix, score_keeper, /* &mut seen_edges */) {
             Some(ScoreUpdate::Done) => return Some(ScoreUpdate::Done),
             _ => {}
         }
@@ -37,6 +38,7 @@ pub fn search(max_budget: Uzz, n_episodes: Uzz) {
     let mut g_map = GraphMap::default();
     let mut rng = rand::thread_rng();
     let graph = ColoredGraph::uniformly_random(&mut rng);
-    let mut score_keeper = ScoreKeeper::from(graph);
+    let actions = ActionMatrix::from(graph);
+    let mut score_keeper = ScoreKeeper::from(actions);
     play_epochs(&mut g_map, &mut score_keeper, max_budget, n_episodes);
 }
