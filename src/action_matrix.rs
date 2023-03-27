@@ -215,7 +215,11 @@ mod recolor_gradient_test {
             match (u, v) {
                 (0, 1) => assert_eq!(slope_1, None),
                 (0, _) | (1, _) => assert_eq!(slope_1, Some(&choose(N-3, S[0]-2))),
-                (_, _) => assert_eq!(slope_1, Some(&choose(N-2, S[0]-2))),
+                (_, _) => assert_eq!(slope_1, Some(&(
+                    choose(N-2, S[0]-2) - 
+                        if N >= 4 && S[0] >= 4 { choose(N-4, S[0]-4) }
+                        else { 0 }
+                ))),
             }
 
             match (u, v) {
