@@ -8,20 +8,20 @@ use crate::{
 
 const C_NOISE: f64 = 0.07;   // todo("what to do with this value?")
 
-pub struct ScoreKeeper<const N: usize> {
-    roots: Vec<ActionMatrix<N>>,
+pub struct ScoreKeeper<const C: usize, const N: usize> {
+    roots: Vec<ActionMatrix<C, N>>,
     best_count: Iyy
 }
 
-impl<const N: usize> From<ActionMatrix<N>> for ScoreKeeper<N> {
-    fn from(actions: ActionMatrix<N>) -> Self {
+impl<const C: usize, const N: usize> From<ActionMatrix<C, N>> for ScoreKeeper<C, N> {
+    fn from(actions: ActionMatrix<C, N>) -> Self {
         let count = actions.total();
         ScoreKeeper { roots: vec![actions], best_count: count }
     }
 }
 
-impl<const N: usize> ScoreKeeper<N> {
-    pub fn random_root(&self, rng: &mut ThreadRng) -> &ActionMatrix<N> { 
+impl<const C: usize, const N: usize> ScoreKeeper<C, N> {
+    pub fn random_root(&self, rng: &mut ThreadRng) -> &ActionMatrix<C, N> { 
         self.roots.choose(rng).unwrap()
     }
 }
@@ -34,9 +34,9 @@ pub enum ScoreUpdate {
     Worse
 }
 
-impl<const N: usize> ScoreKeeper<N> {
+impl<const C: usize, const N: usize> ScoreKeeper<C, N> {
     #[must_use]
-    pub fn update(&mut self, actions: &ActionMatrix<N>) -> ScoreUpdate {
+    pub fn update(&mut self, actions: &ActionMatrix<C, N>) -> ScoreUpdate {
         let count = actions.total();
         match self.best_count.cmp(&count) {
             std::cmp::Ordering::Less => ScoreUpdate::Worse,
@@ -143,15 +143,15 @@ impl GraphData {
 }
 
 #[derive(Default)]
-pub struct GraphMap<const N: usize> {
-    graphs: HashMap<ColoredGraph<N>, GraphData>
+pub struct GraphMap<const C: usize, const N: usize> {
+    graphs: HashMap<ColoredGraph<C, N>, GraphData>
 }
 
-impl<const N: usize> GraphMap<N> {
+impl<const C: usize, const N: usize> GraphMap<C, N> {
     pub fn next_action(
         &mut self,
-        actions: &mut ActionMatrix<N>,
-        score_keeper: &mut ScoreKeeper<N>,
+        actions: &mut ActionMatrix<C, N>,
+        score_keeper: &mut ScoreKeeper<C, N>,
         // seen_edges: &mut [bool; E]
     ) -> Option<ScoreUpdate> {
         let graph_data = self.graphs.entry(actions.graph().clone())

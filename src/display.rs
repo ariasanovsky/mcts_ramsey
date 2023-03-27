@@ -3,7 +3,7 @@ use bit_iter::BitIter;
 use crate::colored_graph::*;
 
 
-impl<const N: usize> ColoredGraph<N> {
+impl<const C: usize, const N: usize> ColoredGraph<C, N> {
     pub fn show_matrix(&self) {
         if C == 0 { println!("Colorless graph!") }
         for u in 1..N {
@@ -64,7 +64,7 @@ mod g6_tests {
 
     #[test]
     fn mckay_example() {
-        let mut graph = ColoredGraph::<5>::red();
+        let mut graph = ColoredGraph::<2, 5>::red();
         graph.recolor(Recoloring{ old_color: 0, new_color: 1, edge: (0, 2) });
         graph.recolor(Recoloring{ old_color: 0, new_color: 1, edge: (0, 4) });
         graph.recolor(Recoloring{ old_color: 0, new_color: 1, edge: (1, 3) });

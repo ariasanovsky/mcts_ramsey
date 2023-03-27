@@ -1,5 +1,5 @@
 pub use crate::r_3_4::*;
-pub const C: Color = S.len();
+//pub const C: Color = S.len();
 
 use bit_fiddler::{set, unset, is_set, mask};
 use itertools::Itertools;
@@ -87,7 +87,7 @@ mod math_tests {
 }
 
 #[derive(Hash, Eq, PartialEq, Clone)]
-pub struct ColoredGraph<const N: usize> {
+pub struct ColoredGraph<const C: usize, const N: usize> {
     neighborhoods: [[Uxx; N]; C]
 }
 
@@ -97,7 +97,7 @@ pub fn random_edge<const N: usize>(rng: &mut ThreadRng) -> Edge {
     if v < u { (v, u) } else { (u, v+1) }
 }
 
-impl<const N: usize> ColoredGraph<N> {
+impl<const C: usize, const N: usize> ColoredGraph<C, N> {
     pub fn score(&self) -> Iyy {
         (0..C)
         .map(|c| self.count_cliques(c, None, None))
@@ -123,7 +123,7 @@ impl<const N: usize> ColoredGraph<N> {
         self.count_cliques(color, Some(S[color]-2), candidates)
     }
     
-    pub fn red() -> ColoredGraph<N> {
+    pub fn red() -> ColoredGraph<C, N> {
         let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
         for u in 0..N {
             let mut neighborhood = mask!([0..N], Uxx);
@@ -133,7 +133,7 @@ impl<const N: usize> ColoredGraph<N> {
         ColoredGraph { neighborhoods }
     }
 
-    pub fn uniformly_random(rng: &mut ThreadRng) -> ColoredGraph<N> {
+    pub fn uniformly_random(rng: &mut ThreadRng) -> ColoredGraph<C, N> {
         let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
         for (u, v) in (0..N).tuple_combinations() {
             let c = rng.gen_range(0..C);
@@ -144,7 +144,7 @@ impl<const N: usize> ColoredGraph<N> {
         ColoredGraph { neighborhoods }
     }
 
-    pub fn random(rng: &mut ThreadRng, dist: &WeightedIndex<i32>) -> ColoredGraph<N> {
+    pub fn random(rng: &mut ThreadRng, dist: &WeightedIndex<i32>) -> ColoredGraph<C, N> {
         let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
         for (u, v) in (0..N).tuple_combinations() {
             let c = rng.sample(dist);
@@ -230,7 +230,8 @@ mod tests {
     #[test]
     fn only_red_cliques() {
         const N: usize = 8;
-        let red = ColoredGraph::<N>::red();
+        const C: usize = 2;
+        let red = ColoredGraph::<C, N>::red();
         assert_eq!(choose(N, S[0]),
             red.count_cliques(0, None, None));
         for c in 1..C {
