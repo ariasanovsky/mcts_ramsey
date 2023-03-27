@@ -1,5 +1,7 @@
 use bit_iter::BitIter;
+
 use crate::colored_graph::*;
+
 
 impl<const N: usize> ColoredGraph<N> {
     pub fn show_matrix(&self) {
@@ -30,26 +32,25 @@ impl<const N: usize> ColoredGraph<N> {
             std::cmp::Ordering::Greater => todo!("large N g6 prefix")
         };
 
-        let (mut word, mut ctr) = (0 as u8, 0 as usize);
+        let (mut word, mut pos) = (0 as u8, 5 as usize);
         for v in 1..N { // colex
             for u in 0..v {
                 let colored_edge = ColoredEdge {color, edge: (v, u)};
                 if self.has_edge(colored_edge) {
-                    word |= 1;
+                    word = bit_fiddler::set!(word, u8, pos);
                 }
-                if ctr == 5 {
+                if pos == 0 {
                     graph.push((word + 63) as char);
-                    ctr = 0
+                    word = 0;
+                    pos = 5
                 }
                 else {
-                    word >>= 1;
-                    ctr += 1
+                    pos -= 1
                 }
             }
         }
 
-        if ctr != 0 {
-            word >>= 6 - ctr;
+        if pos != 5 {
             graph.push((word + 63) as char)
         }
 
@@ -59,5 +60,15 @@ impl<const N: usize> ColoredGraph<N> {
 
 #[cfg(test)]
 mod g6_tests {
+    use crate::colored_graph::{ColoredGraph, Recoloring};
 
+    #[test]
+    fn mckay_example() {
+        let mut graph = ColoredGraph::<5>::red();
+        graph.recolor(Recoloring{ old_color: 0, new_color: 1, edge: (0, 2) });
+        graph.recolor(Recoloring{ old_color: 0, new_color: 1, edge: (0, 4) });
+        graph.recolor(Recoloring{ old_color: 0, new_color: 1, edge: (1, 3) });
+        graph.recolor(Recoloring{ old_color: 0, new_color: 1, edge: (3, 4) });
+        assert_eq!(graph.graph6(1), String::from("DQc"))
+    }
 }

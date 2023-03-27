@@ -1,4 +1,5 @@
 pub use crate::r_3_4::*;
+pub const C: Color = S.len();
 
 use bit_fiddler::{set, unset, is_set, mask};
 use itertools::Itertools;
@@ -84,8 +85,6 @@ mod math_tests {
         }
     }
 }
-
-pub const C: Color = S.len();
 
 #[derive(Hash, Eq, PartialEq, Clone)]
 pub struct ColoredGraph<const N: usize> {

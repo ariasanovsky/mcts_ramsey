@@ -5,7 +5,7 @@ pub fn play_episode<const N: usize>(g_map: &mut GraphMap<N>, score_keeper: &mut 
     let mut action_matrix = score_keeper.random_root(&mut rng).clone();
     /* let mut seen_edges = [false; E]; */
     // todo("clone the whole ActionMatrix instead?")
-    for _ in 0..E {
+    for _ in 0..choose_two(N) {
         match g_map.next_action(&mut action_matrix, score_keeper, /* &mut seen_edges */) {
             Some(ScoreUpdate::Done) => return Some(ScoreUpdate::Done),
             _ => {}
