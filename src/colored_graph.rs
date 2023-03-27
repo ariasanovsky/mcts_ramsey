@@ -1,4 +1,4 @@
-pub use crate::r_4_4::*;
+include!(concat!(env!("OUT_DIR"), "/constants.rs"));
 
 use bit_fiddler::{set, unset, is_set, mask};
 use itertools::Itertools;

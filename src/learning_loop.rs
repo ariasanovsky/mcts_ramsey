@@ -44,13 +44,10 @@ pub fn play_epochs<const C: usize, const N: usize, const E: usize, const N_EPOCH
     }
 }
 
-use rand::distributions::WeightedIndex;
-
 pub fn search<const C: usize, const N: usize, const E: usize, const N_EPOCHS: usize, const N_EPISODES: Uzz>()
 {
     let mut rng = rand::thread_rng();
-    let dist = WeightedIndex::new(&P).unwrap();
-    let graph = ColoredGraph::<C, N>::random(&mut rng, &dist);
+    let graph = ColoredGraph::<C, N>::uniformly_random(&mut rng);
     let actions = ActionMatrix::from(graph);
     
     let mut score_keeper = ScoreKeeper::from(actions);
