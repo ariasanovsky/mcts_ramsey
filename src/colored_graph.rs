@@ -144,10 +144,10 @@ impl<const N: usize> ColoredGraph<N> {
         ColoredGraph { neighborhoods }
     }
 
-    pub fn random(rng: &mut ThreadRng, dist: WeightedIndex<i32>) -> ColoredGraph<N> {
+    pub fn random(rng: &mut ThreadRng, dist: &WeightedIndex<i32>) -> ColoredGraph<N> {
         let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
         for (u, v) in (0..N).tuple_combinations() {
-            let c = rng.gen_range(0..C);
+            let c = rng.sample(dist);
             neighborhoods[c][u] = set!((neighborhoods[c][u]), Uxx, v);
             neighborhoods[c][v] = set!((neighborhoods[c][v]), Uxx, u);
         }
