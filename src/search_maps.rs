@@ -8,20 +8,20 @@ use crate::{
 
 const C_NOISE: f64 = 0.07;   // todo("what to do with this value?")
 
-pub struct ScoreKeeper<const C: usize, const N: usize> {
-    roots: Vec<ActionMatrix<C, N>>,
+pub struct ScoreKeeper<const C: usize, const N: usize, const E: usize> {
+    roots: Vec<ActionMatrix<C, N, E>>,
     best_count: Iyy
 }
 
-impl<const C: usize, const N: usize> From<ActionMatrix<C, N>> for ScoreKeeper<C, N> {
-    fn from(actions: ActionMatrix<C, N>) -> Self {
+impl<const C: usize, const N: usize, const E: usize> From<ActionMatrix<C, N, E>> for ScoreKeeper<C, N, E> {
+    fn from(actions: ActionMatrix<C, N, E>) -> Self {
         let count = actions.total();
         ScoreKeeper { roots: vec![actions], best_count: count }
     }
 }
 
-impl<const C: usize, const N: usize> ScoreKeeper<C, N> {
-    pub fn random_root(&self, rng: &mut ThreadRng) -> &ActionMatrix<C, N> { 
+impl<const C: usize, const N: usize, const E: usize> ScoreKeeper<C, N, E> {
+    pub fn random_root(&self, rng: &mut ThreadRng) -> &ActionMatrix<C, N, E> { 
         self.roots.choose(rng).unwrap()
     }
 }
@@ -34,9 +34,9 @@ pub enum ScoreUpdate {
     Worse
 }
 
-impl<const C: usize, const N: usize> ScoreKeeper<C, N> {
+impl<const C: usize, const N: usize, const E: usize> ScoreKeeper<C, N, E> {
     #[must_use]
-    pub fn update(&mut self, actions: &ActionMatrix<C, N>) -> ScoreUpdate {
+    pub fn update(&mut self, actions: &ActionMatrix<C, N, E>) -> ScoreUpdate {
         let count = actions.total();
         match self.best_count.cmp(&count) {
             std::cmp::Ordering::Less => ScoreUpdate::Worse,
@@ -143,15 +143,15 @@ impl GraphData {
 }
 
 #[derive(Default)]
-pub struct GraphMap<const C: usize, const N: usize> {
+pub struct GraphMap<const C: usize, const N: usize, const E: usize> {
     graphs: HashMap<ColoredGraph<C, N>, GraphData>
 }
 
-impl<const C: usize, const N: usize> GraphMap<C, N> {
+impl<const C: usize, const N: usize, const E: usize> GraphMap<C, N, E> {
     pub fn next_action(
         &mut self,
-        actions: &mut ActionMatrix<C, N>,
-        score_keeper: &mut ScoreKeeper<C, N>,
+        actions: &mut ActionMatrix<C, N, E>,
+        score_keeper: &mut ScoreKeeper<C, N, E>,
         // seen_edges: &mut [bool; E]
     ) -> Option<ScoreUpdate> {
         let graph_data = self.graphs.entry(actions.graph().clone())

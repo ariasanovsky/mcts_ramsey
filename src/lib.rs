@@ -35,7 +35,6 @@ pub mod r_3_3 {
 }
 
 pub mod r_3_4 {
-    pub const E: usize = 8*(8-1)/2;
     pub const S: [usize; 2] = [3, 4];
     pub use crate::uniform_2::*;
     pub use crate::{n_leq_32::*, count_leq_2_15::*, visits_leq_2_32::*};
