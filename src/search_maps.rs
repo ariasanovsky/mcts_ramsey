@@ -6,22 +6,22 @@ use crate::{
     action_matrix::*
 };
 
-const C_NOISE: f64 = 0.6;   // todo("what to do with this value?")
+const C_NOISE: f64 = 0.07;   // todo("what to do with this value?")
 
-pub struct ScoreKeeper {
-    roots: Vec<ActionMatrix>,
+pub struct ScoreKeeper<const N: usize> {
+    roots: Vec<ActionMatrix<N>>,
     best_count: Iyy
 }
 
-impl From<ActionMatrix> for ScoreKeeper {
-    fn from(actions: ActionMatrix) -> Self {
+impl<const N: usize> From<ActionMatrix<N>> for ScoreKeeper<N> {
+    fn from(actions: ActionMatrix<N>) -> Self {
         let count = actions.total();
         ScoreKeeper { roots: vec![actions], best_count: count }
     }
 }
 
-impl ScoreKeeper {
-    pub fn random_root(&self, rng: &mut ThreadRng) -> &ActionMatrix { 
+impl<const N: usize> ScoreKeeper<N> {
+    pub fn random_root(&self, rng: &mut ThreadRng) -> &ActionMatrix<N> { 
         self.roots.choose(rng).unwrap()
     }
 }
@@ -34,17 +34,25 @@ pub enum ScoreUpdate {
     Worse
 }
 
-impl ScoreKeeper {
+impl<const N: usize> ScoreKeeper<N> {
     #[must_use]
-    pub fn update(&mut self, actions: &ActionMatrix) -> ScoreUpdate {
+    pub fn update(&mut self, actions: &ActionMatrix<N>) -> ScoreUpdate {
         let count = actions.total();
         match self.best_count.cmp(&count) {
             std::cmp::Ordering::Less => ScoreUpdate::Worse,
             std::cmp::Ordering::Equal => {
                 if !self.roots.contains(actions) {
-                    self.roots.push(actions.clone());
-                    if self.roots.len() > 0 {
-                        print!("\r{} minima... ", self.roots.len())
+                    const MAX_N_ROOTS: usize = 250;
+                    match self.roots.len().cmp(&MAX_N_ROOTS) {
+                        std::cmp::Ordering::Less => {
+                            self.roots.push(actions.clone());
+                            print!("\r{} minima... ", self.roots.len())
+                        }
+                        std::cmp::Ordering::Equal => {
+                            self.roots.push(actions.clone());
+                            println!("\r{MAX_N_ROOTS}+ minima... ")
+                        }
+                        std::cmp::Ordering::Greater => {}
                     }
                     ScoreUpdate::Tie
                 }
@@ -135,15 +143,15 @@ impl GraphData {
 }
 
 #[derive(Default)]
-pub struct GraphMap {
-    graphs: HashMap<ColoredGraph, GraphData>
+pub struct GraphMap<const N: usize> {
+    graphs: HashMap<ColoredGraph<N>, GraphData>
 }
 
-impl GraphMap {
+impl<const N: usize> GraphMap<N> {
     pub fn next_action(
         &mut self,
-        actions: &mut ActionMatrix,
-        score_keeper: &mut ScoreKeeper,
+        actions: &mut ActionMatrix<N>,
+        score_keeper: &mut ScoreKeeper<N>,
         // seen_edges: &mut [bool; E]
     ) -> Option<ScoreUpdate> {
         let graph_data = self.graphs.entry(actions.graph().clone())

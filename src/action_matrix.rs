@@ -10,15 +10,15 @@ pub type EdgePos = usize;
 pub type Action = (Color, EdgePos);
 
 #[derive(Clone)]
-pub struct ActionMatrix {
+pub struct ActionMatrix<const N: usize> {
     counts: [[Iyy; E]; C],
-    graph: ColoredGraph,
+    graph: ColoredGraph<N>,
     actions: PriorityQueue<Action, Iyy>,
     totals: [Iyy; C]
 }
 
-impl From<ColoredGraph> for ActionMatrix {
-    fn from(graph: ColoredGraph) -> Self {
+impl<const N: usize> From<ColoredGraph<N>> for ActionMatrix<N> {
+    fn from(graph: ColoredGraph<N>) -> Self {
         let mut counts: [[Iyy; E]; C] = [[0; E]; C];
         let mut actions: PriorityQueue<Action, Iyy> = Default::default();
         let mut totals: [Iyy; C] = [0; C];
@@ -50,16 +50,18 @@ impl From<ColoredGraph> for ActionMatrix {
 mod action_matrix_initialization {
     use super::*;
 
+    const N: usize = 8;
+
     #[test]
     fn correct_number_of_acounts() {
-        let graph = ColoredGraph::red();
+        let graph = ColoredGraph::<N>::red();
         let actions = ActionMatrix::from(graph);
         assert_eq!(actions.actions.len(), (C-1) * E)
     }
 
     #[test]
     fn red_graph_action_gradients() {
-        let graph = ColoredGraph::red();
+        let graph = ColoredGraph::<N>::red();
         let actions = ActionMatrix::from(graph);
         for ((color, _), slope) in actions.actions {
             assert_ne!(color, 0);
@@ -68,8 +70,8 @@ mod action_matrix_initialization {
     }
 }
 
-impl ActionMatrix {
-    pub fn graph(&self) -> &ColoredGraph { &self.graph }
+impl<const N: usize> ActionMatrix<N> {
+    pub fn graph(&self) -> &ColoredGraph<N> { &self.graph }
     pub fn actions_mut(&mut self) -> &mut PriorityQueue<Action, Iyy> { &mut self.actions }
     
     fn remove_slope(&mut self, action: Action) -> (Action, Iyy) {
@@ -94,7 +96,7 @@ impl ActionMatrix {
             }
         }
 
-        let edge = pos_to_edge(pos);
+        let edge = pos_to_edge::<N>(pos);
         self.delete(old_color, edge);
         self.add(new_color, edge);
 
@@ -142,7 +144,7 @@ impl ActionMatrix {
     }
 
     fn decrement_count(&mut self, color: Color, edge: Edge, amount: Iyy) {
-        let pos = edge_to_pos(edge);
+        let pos = edge_to_pos::<N>(edge);
         self.counts[color][pos] -= amount;
         let curr_color = self.graph.color(edge).unwrap();
         if curr_color == color {
@@ -164,7 +166,7 @@ impl ActionMatrix {
     }
 
     fn increment_count(&mut self, color: Color, edge: Edge, amount: Iyy) {
-        let pos = edge_to_pos(edge);
+        let pos = edge_to_pos::<N>(edge);
         self.counts[color][pos] += amount;
         let curr_color = self.graph.color(edge).unwrap();
         if curr_color == color {
@@ -190,15 +192,17 @@ impl ActionMatrix {
 mod recolor_gradient_test {
     use super::*;
 
-    impl ActionMatrix {
+    impl<const N: usize> ActionMatrix<N> {
         pub fn slope(&self, action: Action) -> Option<&Iyy> {
             self.actions.get_priority(&action)
         }
     }
 
+    const N: usize = 8;
+
     #[test]
     fn one_recoloring() {
-        let mut actions = ActionMatrix::from(ColoredGraph::red());
+        let mut actions = ActionMatrix::from(ColoredGraph::<N>::red());
         actions.recolor((1, 0), 0);
         for (i, (u,v)) in (0..N).tuple_combinations().enumerate() {
             let slope_0 = actions.slope((0, i));
@@ -218,14 +222,14 @@ mod recolor_gradient_test {
     }
 }
 
-impl From<&Recoloring> for Action {
-    fn from(recoloring: &Recoloring) -> Self {
-        let pos = edge_to_pos(recoloring.edge);
+impl<const N: usize> From<&Recoloring<N>> for Action {
+    fn from(recoloring: &Recoloring<N>) -> Self {
+        let pos = edge_to_pos::<N>(recoloring.edge);
         (recoloring.new_color, pos)
     }
 }
 
-impl ActionMatrix {
+impl<const N: usize> ActionMatrix<N> {
 
     pub fn score(&self) -> Iyy {
         let mut score: Iyy = 0;
@@ -247,7 +251,7 @@ impl ActionMatrix {
     }
 
     pub fn act(&mut self, (new_color, pos): Action) {
-        let edge = pos_to_edge(pos);
+        let edge = pos_to_edge::<N>(pos);
         let old_color = self.graph.color(edge)
             .unwrap();
         self.recolor((new_color, pos), old_color);
@@ -267,9 +271,11 @@ impl ActionMatrix {
 mod test_random_recoloring {
     use super::*;
 
+    const N: usize = 8;
+
     #[test]
     fn consistent_counts() {
-        let mut actions = ActionMatrix::from(ColoredGraph::red());
+        let mut actions = ActionMatrix::from(ColoredGraph::<N>::red());
         let mut rng = rand::thread_rng();
         for _ in 0..100 {
             for c in 0..C {
@@ -293,9 +299,9 @@ mod test_random_recoloring {
         }
     }
 
-    impl ActionMatrix {
+    impl ActionMatrix<N> {
         fn calculate_slope(&self, (new_color, pos): Action) -> Option<Iyy> {
-            let edge = pos_to_edge(pos);
+            let edge = pos_to_edge::<N>(pos);
             let old_color = self.graph.color(edge)
                 .unwrap();
         
@@ -326,7 +332,7 @@ mod test_random_recoloring {
 
     #[test]
     fn consistent_scores() {
-        let mut actions = ActionMatrix::from(ColoredGraph::red());
+        let mut actions = ActionMatrix::from(ColoredGraph::<8>::red());
         let mut rng = rand::thread_rng();
         for _ in 0..100 {
             assert_eq!(actions.score(), actions.graph.score());
@@ -336,7 +342,7 @@ mod test_random_recoloring {
     }
 }
 
-impl PartialEq for ActionMatrix {
+impl<const N: usize> PartialEq for ActionMatrix<N> {
     fn eq(&self, other: &Self) -> bool {
         self.graph == other.graph
     }

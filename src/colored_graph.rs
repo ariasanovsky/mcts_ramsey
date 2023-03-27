@@ -1,4 +1,4 @@
-pub use crate::r_4_6::*;
+pub use crate::r_3_4::*;
 
 use bit_fiddler::{set, unset, is_set, mask};
 use itertools::Itertools;
@@ -14,13 +14,13 @@ pub struct ColoredEdge {
     pub color: Color,
     pub edge: Edge
 }
-pub struct Recoloring {
+pub struct Recoloring<const N: usize> {
     pub old_color: Color,
     pub new_color: Color,
     pub edge: Edge
 }
 
-impl Recoloring {
+impl<const N: usize> Recoloring<N> {
     pub fn old_edge(&self) -> ColoredEdge { ColoredEdge { color: self.old_color, edge: self.edge } }
     pub fn new_edge(&self) -> ColoredEdge { ColoredEdge { color: self.new_color, edge: self.edge } }
 }
@@ -37,7 +37,7 @@ pub const fn choose_two(n: usize) -> usize {
     n*(n+1)/2-n
 }
 
-pub fn pos_to_edge(pos: usize) -> Edge {
+pub fn pos_to_edge<const N: usize>(pos: usize) -> Edge {
     let mut u = 0;
     let mut pos_u_n_minus_1 = N - 2;
     while pos_u_n_minus_1 < pos {
@@ -48,7 +48,7 @@ pub fn pos_to_edge(pos: usize) -> Edge {
     (u, v)
 }
 
-pub fn edge_to_pos((u, v): Edge) -> usize {
+pub fn edge_to_pos<const N: usize>((u, v): Edge) -> usize {
     if u < v { u*(2*N-1-u)/2 + (v-u-1) }
     else     { v*(2*N-1-v)/2 + (u-v-1) }
 }
@@ -67,36 +67,38 @@ mod math_tests {
         }
     }
 
+    const N: usize = 8;
+
     #[test]
     fn pos_to_edge_test() {
         for (i, (u, v)) in (0..N).tuple_combinations().enumerate() {
-            assert_eq!(pos_to_edge(i), (u, v));
+            assert_eq!(pos_to_edge::<N>(i), (u, v));
         }
     }
 
     #[test]
     fn edge_to_pos_test() {
         for (i, (u, v)) in (0..N).tuple_combinations().enumerate() {
-            assert_eq!(edge_to_pos((u,v)), i);
-            assert_eq!(edge_to_pos((v,u)), i);
+            assert_eq!(edge_to_pos::<N>((u,v)), i);
+            assert_eq!(edge_to_pos::<N>((v,u)), i);
         }
     }
 }
 
 pub const C: Color = S.len();
-pub const E: usize = choose_two(N);
+
 #[derive(Hash, Eq, PartialEq, Clone)]
-pub struct ColoredGraph {
+pub struct ColoredGraph<const N: usize> {
     neighborhoods: [[Uxx; N]; C]
 }
 
-pub fn random_edge(rng: &mut ThreadRng) -> Edge {
+pub fn random_edge<const N: usize>(rng: &mut ThreadRng) -> Edge {
     let u = rng.gen_range(0..N);
     let v = rng.gen_range(0..N-1);
     if v < u { (v, u) } else { (u, v+1) }
 }
 
-impl ColoredGraph {
+impl<const N: usize> ColoredGraph<N> {
     pub fn score(&self) -> Iyy {
         (0..C)
         .map(|c| self.count_cliques(c, None, None))
@@ -122,7 +124,7 @@ impl ColoredGraph {
         self.count_cliques(color, Some(S[color]-2), candidates)
     }
     
-    pub fn red() -> ColoredGraph {
+    pub fn red() -> ColoredGraph<N> {
         let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
         for u in 0..N {
             let mut neighborhood = mask!([0..N], Uxx);
@@ -132,7 +134,7 @@ impl ColoredGraph {
         ColoredGraph { neighborhoods }
     }
 
-    pub fn uniformly_random(rng: &mut ThreadRng) -> ColoredGraph {
+    pub fn uniformly_random(rng: &mut ThreadRng) -> ColoredGraph<N> {
         let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
         for (u, v) in (0..N).tuple_combinations() {
             let c = rng.gen_range(0..C);
@@ -143,7 +145,7 @@ impl ColoredGraph {
         ColoredGraph { neighborhoods }
     }
 
-    pub fn random(rng: &mut ThreadRng, dist: WeightedIndex<i32>) -> ColoredGraph {
+    pub fn random(rng: &mut ThreadRng, dist: WeightedIndex<i32>) -> ColoredGraph<N> {
         let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
         for (u, v) in (0..N).tuple_combinations() {
             let c = rng.gen_range(0..C);
@@ -166,7 +168,7 @@ impl ColoredGraph {
         self.neighborhoods[c][v] = unset!((self.neighborhoods[c][v]), Uxx, u);
     }
 
-    pub fn recolor(&mut self, recolor: Recoloring) {
+    pub fn recolor(&mut self, recolor: Recoloring<N>) {
         self.delete(recolor.old_color, recolor.edge);
         self.add(recolor.new_color, recolor.edge);
     }
@@ -198,13 +200,13 @@ impl ColoredGraph {
     }
 
     pub fn random_edge(&self, rng: &mut ThreadRng) -> ColoredEdge {
-        let edge = random_edge(rng);
+        let edge = random_edge::<N>(rng);
         let color = self.color(edge)
             .unwrap();
         ColoredEdge { color, edge }
     }
 
-    pub fn random_recoloring(&self, rng: &mut ThreadRng) -> Recoloring {
+    pub fn random_recoloring(&self, rng: &mut ThreadRng) -> Recoloring<N> {
         let colored_edge = self.random_edge(rng);
         let new_color = rng.gen_range(0..C-1);
         let new_color = 
@@ -220,27 +222,6 @@ impl ColoredGraph {
     pub fn randomly_recolor(&mut self, rng: &mut ThreadRng) {
         self.recolor(self.random_recoloring(rng))
     }
-
-    pub fn show_matrix(&self) {
-        if C == 0 { println!("Colorless graph!") }
-        for u in 1..N {
-            for v in 0..u {
-                let c = self.color((u, v)).unwrap_or(C);
-                print!("{c}");
-            }
-            print!("; ");
-        }
-    }
-
-    pub fn show_neighborhoods(&self) {
-        for u in 0..N {
-            print!("vertex {u}:");
-            for c in 0..C {
-                print!(" {:?}", BitIter::from(self.bit_neighborhood(c, u)).collect::<Vec<_>>());
-            }
-            println!();
-        }
-    }
 }
 
 #[cfg(test)]
@@ -249,7 +230,8 @@ mod tests {
 
     #[test]
     fn only_red_cliques() {
-        let red = ColoredGraph::red();
+        const N: usize = 8;
+        let red = ColoredGraph::<N>::red();
         assert_eq!(choose(N, S[0]),
             red.count_cliques(0, None, None));
         for c in 1..C {

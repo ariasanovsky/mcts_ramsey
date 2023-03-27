@@ -1,5 +1,5 @@
 use mcts_ramsey::{learning_loop::search};
 
 fn main() {
-    search(50, 10_000);
+    search::<8>(50, 10_000);
 }

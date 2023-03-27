@@ -35,7 +35,7 @@ pub mod r_3_3 {
 }
 
 pub mod r_3_4 {
-    pub const N: usize = 8;
+    pub const E: usize = 8*(8-1)/2;
     pub const S: [usize; 2] = [3, 4];
     pub use crate::uniform_2::*;
     pub use crate::{n_leq_32::*, count_leq_2_15::*, visits_leq_2_32::*};
@@ -70,7 +70,7 @@ pub mod r_3_8 {
 }
 
 pub mod r_3_9 { // todo!()
-    pub const N: usize = 35;
+    pub const N: usize = 33;
     pub const S: [usize; 2] = [3, 9];
     pub use crate::uniform_2::*;
     pub use crate::{n_leq_64::*, count_leq_2_15::*, visits_leq_2_32::*};
@@ -153,7 +153,15 @@ pub mod r_3_3_3 {
     pub use crate::{n_leq_16::*, count_leq_2_15::*, visits_leq_2_32::*};
 }
 
+pub mod r_3_3_3_3 {
+    pub const N: usize = 42;
+    pub const S: [usize; 4] = [3, 3, 3, 3];
+    pub use crate::uniform_4::*;
+    pub use crate::{n_leq_64::*, count_leq_2_15::*, visits_leq_2_32::*};
+}
+
 pub mod colored_graph;
+pub mod display;
 pub mod action_matrix;
 pub mod search_maps;
 pub mod learning_loop;

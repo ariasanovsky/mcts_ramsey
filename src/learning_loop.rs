@@ -1,6 +1,6 @@
 use crate::{search_maps::*, action_matrix::*, colored_graph::*};
 
-pub fn play_episode(g_map: &mut GraphMap, score_keeper: &mut ScoreKeeper, budget: Uzz) -> Option<ScoreUpdate> {
+pub fn play_episode<const N: usize>(g_map: &mut GraphMap<N>, score_keeper: &mut ScoreKeeper<N>, budget: Uzz) -> Option<ScoreUpdate> {
     let mut rng = rand::thread_rng();
     let mut action_matrix = score_keeper.random_root(&mut rng).clone();
     /* let mut seen_edges = [false; E]; */
@@ -14,7 +14,7 @@ pub fn play_episode(g_map: &mut GraphMap, score_keeper: &mut ScoreKeeper, budget
     return None
 }
 
-pub fn play_epoch(g_map: &mut GraphMap, score_keeper: &mut ScoreKeeper, budget: Uzz, n_episodes: Uzz) -> Option<ScoreUpdate> {
+pub fn play_epoch<const N: usize>(g_map: &mut GraphMap<N>, score_keeper: &mut ScoreKeeper<N>, budget: Uzz, n_episodes: Uzz) -> Option<ScoreUpdate> {
     for i in 1..(n_episodes+1) {
         if i % 100_000 == 0 { println!("== EPISODE == {i}") }
         match play_episode(g_map, score_keeper, budget) {
@@ -25,7 +25,7 @@ pub fn play_epoch(g_map: &mut GraphMap, score_keeper: &mut ScoreKeeper, budget: 
     None
 }
 
-pub fn play_epochs(g_map: &mut GraphMap, score_keeper: &mut ScoreKeeper, max_budget: Uzz, n_episodes: Uzz) {
+pub fn play_epochs<const N: usize>(g_map: &mut GraphMap<N>, score_keeper: &mut ScoreKeeper<N>, max_budget: Uzz, n_episodes: Uzz) {
     for budget in 1..max_budget {
         println!("==== EPOCH ==== {budget}");
         match play_epoch(g_map, score_keeper, budget, n_episodes) {
@@ -40,10 +40,10 @@ pub fn play_epochs(g_map: &mut GraphMap, score_keeper: &mut ScoreKeeper, max_bud
 
 use rand::distributions::WeightedIndex;
 
-pub fn search(max_budget: Uzz, n_episodes: Uzz) {
+pub fn search<const N: usize>(max_budget: Uzz, n_episodes: Uzz) {
     let mut rng = rand::thread_rng();
     let dist = WeightedIndex::new(&P).unwrap();
-    let graph = ColoredGraph::random(&mut rng, dist);
+    let graph = ColoredGraph::<N>::random(&mut rng, dist);
     let actions = ActionMatrix::from(graph);
     
     let mut score_keeper = ScoreKeeper::from(actions);
