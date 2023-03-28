@@ -41,15 +41,14 @@ impl<const C: usize, const N: usize, const E: usize> ScoreKeeper<C, N, E> {
             std::cmp::Ordering::Less => ScoreUpdate::Worse,
             std::cmp::Ordering::Equal => {
                 if !self.roots.contains(actions) {
-                    const MAX_N_ROOTS: usize = 250;
-                    match self.roots.len().cmp(&MAX_N_ROOTS) {
+                    match self.roots.len().cmp(&ROOTS) {
                         std::cmp::Ordering::Less => {
                             self.roots.push(actions.clone());
                             print!("\r{} minima... ", self.roots.len())
                         }
                         std::cmp::Ordering::Equal => {
                             self.roots.push(actions.clone());
-                            println!("\r{MAX_N_ROOTS}+ minima... ")
+                            println!("\r{ROOTS}+ minima... ")
                         }
                         std::cmp::Ordering::Greater => {}
                     }

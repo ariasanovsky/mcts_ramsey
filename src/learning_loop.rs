@@ -1,4 +1,5 @@
 use crate::{search_maps::*, action_matrix::*, colored_graph::*};
+use crate::colored_graph::{EPOCHS, EPISODES};
 
 pub fn play_episode<const C: usize, const N: usize, const E: usize>
 (g_map: &mut GraphMap<C, N, E>, score_keeper: &mut ScoreKeeper<C, N, E>, n_moves: usize) -> Option<ScoreUpdate>
@@ -16,11 +17,11 @@ pub fn play_episode<const C: usize, const N: usize, const E: usize>
     return None
 }
 
-pub fn play_epoch<const C: usize, const N: usize, const E: usize, const N_EPISODES: Uzz>
+pub fn play_epoch<const C: usize, const N: usize, const E: usize>
 (g_map: &mut GraphMap<C, N, E>, score_keeper: &mut ScoreKeeper<C, N, E>, n_moves: usize, n_episodes: Uzz) -> Option<ScoreUpdate>
 {
     for i in 1..(n_episodes+1) {
-        if i % (10 * N_EPISODES) == 0 { println!("== EPISODE == {i}") }
+        if i % (10 * EPISODES) == 0 { println!("== EPISODE == {i}") }
         match play_episode(g_map, score_keeper, n_moves) {
             Some(ScoreUpdate::Done) => return Some(ScoreUpdate::Done),
             _ => {}
@@ -29,12 +30,12 @@ pub fn play_epoch<const C: usize, const N: usize, const E: usize, const N_EPISOD
     None
 }
 
-pub fn play_epochs<const C: usize, const N: usize, const E: usize, const N_EPOCHS: usize, const N_EPISODES: Uzz>
+pub fn play_epochs<const C: usize, const N: usize, const E: usize>
 (g_map: &mut GraphMap<C, N, E>, score_keeper: &mut ScoreKeeper<C, N, E>)
 {
-    for epoch in 1..(N_EPOCHS+1) {
+    for epoch in 1..(EPOCHS+1) {
         println!("==== EPOCH ==== {epoch}");
-        match play_epoch::<C, N, E, N_EPISODES>(g_map, score_keeper, epoch, N_EPISODES) {
+        match play_epoch::<C, N, E>(g_map, score_keeper, E/4 + epoch, EPISODES) {
             Some(ScoreUpdate::Done) => {
                 println!("R{S:?} > {N}");
                 return
@@ -44,7 +45,7 @@ pub fn play_epochs<const C: usize, const N: usize, const E: usize, const N_EPOCH
     }
 }
 
-pub fn search<const C: usize, const N: usize, const E: usize, const N_EPOCHS: usize, const N_EPISODES: Uzz>()
+pub fn search<const C: usize, const N: usize, const E: usize>()
 {
     let mut rng = rand::thread_rng();
     let graph = ColoredGraph::<C, N>::uniformly_random(&mut rng);
@@ -52,5 +53,5 @@ pub fn search<const C: usize, const N: usize, const E: usize, const N_EPOCHS: us
     
     let mut score_keeper = ScoreKeeper::from(actions);
     let mut g_map = GraphMap::default();
-    play_epochs::<C, N, E, N_EPOCHS, N_EPISODES>(&mut g_map, &mut score_keeper);
+    play_epochs::<C, N, E>(&mut g_map, &mut score_keeper);
 }

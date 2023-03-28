@@ -54,8 +54,16 @@ fn main() {
         .expect("Could not write file");
     println!("cargo:rerun-if-env-changed=EPISODES");
 
+    let roots = option_env!("ROOTS")
+        .map_or(Ok(250), str::parse)
+        .expect("Could not parse ROOTS");
+
+    write!(&mut f, "pub const ROOTS: usize = {roots};\n")
+        .expect("Could not write file");
+    println!("cargo:rerun-if-env-changed=ROOTS");
+
     let explore = option_env!("EXPLORE")
-        .map_or(Ok(0.2), str::parse)
+        .map_or(Ok(4.5), str::parse)
         .expect("Could not parse EXPLORE");
 
     write!(&mut f, "pub const EXPLORE: f64 = {explore};\n")

@@ -1,15 +1,17 @@
 # Technical Details
 
-- [Tabular Monte Carlo search](#tabular-monte-carlo-search)
 - [Dynamic clique counting](#dynamic-clique-counting)
 - [Action matrix](#action-matrix)
 - [Data structures](#data-structures)
     - [Primary data structures](#primary-data-structures)
     - [Search maps](#search-maps)
-- [Primer on Ramsey Theory](#primer-on-ramsey-theory)
 
 
-## Tabular Monte Carlo Search
+## Dynamic clique counting
+
+To update $\kappa_G$ following action $a = c'|uv$ with $c$ the current color of $uv$, we do not change the values of $\kappa_G[c][uv]$ and $\kappa_G[c'][uv]$.
+The recoloring affects $\kappa_G[c][uw]$ for every $vw\in E(G[c])$, and similarly for $c'$ replacing $c$, and $u,v$ interchanged.
+It also affects $\kappa_G[c][wx]$ for every distinct $w,x\in [N]\setminus\{u,v\}$ such $w,x$ are both neighbors of $u$ and of $v$ in $G[c]$ (and similarly for $c'$ replacing $c$).
 
 ## Action matrix
 
@@ -25,7 +27,7 @@ Mathematical object | name | struct or parent struct | example implementation
 ---|---|---|--|
 $G$ | (colored) graph | `ColoredGraph` | `[[u64; N]; C]`
 $a = c\vert uv$ | (recoloring) action | `Action` | `(usize, usize)`
-$\nabla(G)$ | discrete gradient vector | `ActionMatrix` | `[[i32; E]; C]`
+$\nabla G$ | discrete gradient vector | `ActionMatrix` | `[[i32; E]; C]`
 $\argmax$ | action queue | `ActionMatrix` | `PriorityQueue<Action, i32>`
 
 ### Search maps
