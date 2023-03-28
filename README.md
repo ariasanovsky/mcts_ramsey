@@ -35,7 +35,7 @@ Verbosity is determined by $N$.
 $Env:N=14 ; $Env:S=3,3,3 ; $Env:EPOCHS=100 ; $Env:EPISODES=10000 ; $Env:EXPLORE=0.3 ; cargo run --release
 ```
 
-finds a witness to the bound $R(3,3,3) > 15$, using the release build.
+finds a witness to the bound $R(3,3,3) > 14$, using the release build.
 Environment variables are managed by `build.rs` and are known at **compile-time**.
 
 
