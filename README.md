@@ -32,13 +32,16 @@ Verbosity is determined by $N$.
 ## Custom Ramsey problems
 
 ```powershell
-$Env:N=8 ; $Env:S=3,4 ; $Env:EPOCHS=100 ; $Env:EPISODES=10000 ; $Env:EXPLORE=0.3 ; cargo run --release
+$Env:N=14 ; $Env:S=3,3,3 ; $Env:EPOCHS=100 ; $Env:EPISODES=10000 ; $Env:EXPLORE=0.3 ; cargo run --release
 ```
 
-finds a witness to the bound $R(3,4) > 8$, using the release build.
-Be mindful of memory consumption when the program runs for too long.
+finds a witness to the bound $R(3,3,3) > 15$, using the release build.
+Environment variables are managed by `build.rs` and are known at **compile-time**.
+
+
+**Be mindful of memory consumption** when the program runs for too long.
 Each (colored) graph visited in the search is stored as a $N\times C$-dimensional array of `u8`, `u16`, ..., or `u128` depending on $N$.
-Additionally, each action taken is also stored in memory.
+Additionally, each action taken is also stored in memory with an incrementing visit count.
 
 ## States and Actions
 
@@ -52,7 +55,7 @@ At each state, $(C-1)\times \binom{N}{2}$ actions are viable.
 
 [Clique counting is hard](https://en.wikipedia.org/wiki/Clique_problem).
 In order to save resources, we employ dynamic programming.
-Each colored graph is associated with a $C\times \binom{N}{2}$-dimensional vector which records, for each color $c$ and each edge $uv$, the number of $S[c]$-cliques in color $c$ that contain both vertices $u,v$.
+Each colored graph is associated with a $C\times \binom{N}{2}$-dimensional vector which records, for each color $c$ and each edge $uv$, the number of $S[c]$-cliques in color $c$ that contain both vertices $u,v$, **ignoring the color of $uv$**.
 Formally, this is a function $\kappa_G:[C]\times \binom{[N]}{2}\to\mathbb{N}$ where 
 
 $$
@@ -65,6 +68,8 @@ When $uv$ has color $c$, the action $c'\vert uv$ (recolor $uv$ with color $c'$) 
 $$
 \nabla G[c'][uv] := \kappa_G[c'][uv] - \kappa_G[c][uv].
 $$
+
+We also employ a hash map priority queue to optimally order actions (`src/README.md`).
 
 ## Monte Carlo Search
 
@@ -81,7 +86,7 @@ $$
 $$
 
 is time-dependent noise which biases the agent towards exploration.
-The constant $C$ is chosen *ad hoc*.
-Here, $n(G)$ is the number of visits to $G$ during the search, and $n(G, a)$ is the number of times $a$ is taken from $G$.
+The exploration constant $C$ is chosen *ad hoc*.
+Here, $n(G)$ is the number of visits to $G$ during the search, and $n(G, a)$ is the number of times $a$ is taken from $G$, both dependent on search time.
 
 ## Results
