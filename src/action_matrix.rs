@@ -141,6 +141,7 @@ impl<const C: usize, const N: usize, const E: usize> ActionMatrix<C, N, E> {
 
     fn adjust_count<const IS_DELETION: bool>
     (&mut self, color: Color, edge: Edge, amount: Iyy) {
+        if amount == 0 { return }
         if IS_DELETION { self.decrement_count(color, edge, amount) }
         else           { self.increment_count(color, edge, amount) }
     }

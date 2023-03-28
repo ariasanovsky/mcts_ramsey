@@ -38,6 +38,30 @@ fn main() {
         .expect("Could not write file");
     println!("cargo:rerun-if-env-changed=N");
 
+    let epochs = option_env!("EPOCHS")
+        .map_or(Ok(50), str::parse)
+        .expect("Could not parse EPOCHS");
+
+    write!(&mut f, "pub const EPOCHS: usize = {epochs};\n")
+        .expect("Could not write file");
+    println!("cargo:rerun-if-env-changed=EPOCHS");
+
+    let episodes = option_env!("EPISODES")
+        .map_or(Ok(10_000), str::parse)
+        .expect("Could not parse EPISODES");
+
+    write!(&mut f, "pub const EPISODES: Uzz = {episodes};\n")
+        .expect("Could not write file");
+    println!("cargo:rerun-if-env-changed=EPISODES");
+
+    let explore = option_env!("EXPLORE")
+        .map_or(Ok(0.2), str::parse)
+        .expect("Could not parse EXPLORE");
+
+    write!(&mut f, "pub const EXPLORE: f64 = {explore};\n")
+        .expect("Could not write file");
+    println!("cargo:rerun-if-env-changed=EXPLORE");
+
     let s: Vec<usize> = option_env!("S")
         .unwrap_or("[3, 3]")
         .split(|c: char| !c.is_numeric())

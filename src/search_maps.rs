@@ -6,7 +6,6 @@ use crate::{
     action_matrix::*
 };
 
-const C_NOISE: f64 = 0.2;   // todo("what to do with this value?")
 
 pub struct ScoreKeeper<const C: usize, const N: usize, const E: usize> {
     roots: Vec<ActionMatrix<C, N, E>>,
@@ -54,7 +53,12 @@ impl<const C: usize, const N: usize, const E: usize> ScoreKeeper<C, N, E> {
                         }
                         std::cmp::Ordering::Greater => {}
                     }
-                    ScoreUpdate::Tie
+                    if self.best_count == 0 {
+                        ScoreUpdate::Done
+                    }
+                    else {
+                        ScoreUpdate::Tie
+                    }
                 }
                 else {
                     ScoreUpdate::Known
@@ -64,9 +68,13 @@ impl<const C: usize, const N: usize, const E: usize> ScoreKeeper<C, N, E> {
                 self.roots = vec![actions.clone()];
                 self.best_count = count;
                 println!("score improved to {count} by");
-                self.roots[0].graph().show_neighborhoods();
-                //self.roots[0].graph().show_matrix();
-                //println!();
+                if N <= 10 {
+                    self.roots[0].graph().show_neighborhoods();
+                }
+                if N <= 25 {
+                    self.roots[0].graph().show_matrix();
+                    println!();
+                }
                 println!("{:?}", self.roots[0].graph().graph6s());
                 print!("\r{} minimum... ", self.roots.len());
                 if count == 0 {
@@ -107,7 +115,7 @@ impl GraphData {
     }
     
     pub fn default_nu(&self) -> f64 {
-        C_NOISE * (self.n_visits as f64).sqrt()
+        EXPLORE * (self.n_visits as f64).sqrt()
     }
     
     fn mu(&self, action: &Action) -> Option<f64> {
@@ -119,7 +127,7 @@ impl GraphData {
         
         Some(
             q_ga as f64 + 
-            C_NOISE * (self.n_visits as f64).sqrt()
+            EXPLORE * (self.n_visits as f64).sqrt()
             / ((1 + n_ga) as f64)
         )
     }

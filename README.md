@@ -27,11 +27,12 @@ describes the construction found by the program.
 First, vertices are paired with their neighborhoods in each color.
 Second, the edges are enumerated in colex order with their colors.
 Third, the colored graphs are shortened in [g6 format](http://users.cecs.anu.edu.au/~bdm/data/formats.txt).
+Verbosity is determined by $N$.
 
 ## Custom Ramsey problems
 
 ```powershell
-$Env:N=8 ; $Env:S=3,4 ; cargo run --release
+$Env:N=8 ; $Env:S=3,4 ; $Env:EPOCHS=100 ; $Env:EPISODES=10000 ; $Env:EXPLORE=0.3 ; cargo run --release
 ```
 
 finds a witness to the bound $R(3,4) > 8$, using the release build.
@@ -82,3 +83,5 @@ $$
 is time-dependent noise which biases the agent towards exploration.
 The constant $C$ is chosen *ad hoc*.
 Here, $n(G)$ is the number of visits to $G$ during the search, and $n(G, a)$ is the number of times $a$ is taken from $G$.
+
+## Results
