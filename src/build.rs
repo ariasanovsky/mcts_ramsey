@@ -1,3 +1,5 @@
+/* see https://stackoverflow.com/a/37528134 */
+
 use std::{env, fs::File, io::Write, path::Path};
 fn main() {
     let out_dir = env::var("OUT_DIR").expect("No out dir");

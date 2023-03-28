@@ -32,9 +32,9 @@ pub fn play_epoch<const C: usize, const N: usize, const E: usize, const N_EPISOD
 pub fn play_epochs<const C: usize, const N: usize, const E: usize, const N_EPOCHS: usize, const N_EPISODES: Uzz>
 (g_map: &mut GraphMap<C, N, E>, score_keeper: &mut ScoreKeeper<C, N, E>)
 {
-    for epoch in 0..N_EPOCHS {
+    for epoch in 1..(N_EPOCHS+1) {
         println!("==== EPOCH ==== {epoch}");
-        match play_epoch::<C, N, E, N_EPISODES>(g_map, score_keeper, epoch + N, N_EPISODES) {
+        match play_epoch::<C, N, E, N_EPISODES>(g_map, score_keeper, epoch, N_EPISODES) {
             Some(ScoreUpdate::Done) => {
                 println!("R{S:?} > {N}");
                 return

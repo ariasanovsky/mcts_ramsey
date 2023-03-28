@@ -1,5 +1,4 @@
 use bit_iter::BitIter;
-
 use crate::colored_graph::*;
 
 
@@ -55,6 +54,10 @@ impl<const C: usize, const N: usize> ColoredGraph<C, N> {
         }
 
         graph
+    }
+
+    pub fn graph6s(&self) -> Vec<String> {
+        (0..C).map(|c| self.graph6(c)).collect()
     }
 }
 

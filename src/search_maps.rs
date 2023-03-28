@@ -6,7 +6,7 @@ use crate::{
     action_matrix::*
 };
 
-const C_NOISE: f64 = 0.07;   // todo("what to do with this value?")
+const C_NOISE: f64 = 0.2;   // todo("what to do with this value?")
 
 pub struct ScoreKeeper<const C: usize, const N: usize, const E: usize> {
     roots: Vec<ActionMatrix<C, N, E>>,
@@ -64,9 +64,10 @@ impl<const C: usize, const N: usize, const E: usize> ScoreKeeper<C, N, E> {
                 self.roots = vec![actions.clone()];
                 self.best_count = count;
                 println!("score improved to {count} by");
-                //self.root.show_neighborhoods();
-                self.roots[0].graph().show_matrix();
-                println!();
+                self.roots[0].graph().show_neighborhoods();
+                //self.roots[0].graph().show_matrix();
+                //println!();
+                println!("{:?}", self.roots[0].graph().graph6s());
                 print!("\r{} minimum... ", self.roots.len());
                 if count == 0 {
                     ScoreUpdate::Done

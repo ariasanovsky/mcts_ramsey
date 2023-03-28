@@ -42,7 +42,7 @@ pub fn pos_to_edge<const N: usize>(pos: usize) -> Edge {
     let mut pos_u_n_minus_1 = N - 2;
     while pos_u_n_minus_1 < pos {
         pos_u_n_minus_1 += N - 2 - u;
-        u += 1;
+        u += 1
     }
     let v = N - 1 - (pos_u_n_minus_1 - pos);
     (u, v)
