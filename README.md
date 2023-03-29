@@ -32,10 +32,10 @@ Verbosity is determined by $N$.
 ## Custom Ramsey problems
 
 ```powershell
-$Env:N=14 ; $Env:S=3,3,3 ; $Env:EPOCHS=100 ; $Env:EPISODES=10000 ; $Env:EXPLORE=0.3 ; cargo run --release
+$Env:N=16 ; $Env:S=3,3,3 ; $Env:EPOCHS=100 ; $Env:EPISODES=10000 ; $Env:EXPLORE=0.3 ; cargo run --release
 ```
 
-finds a witness to the bound $R(3,3,3) > 14$, using the release build.
+finds a witness to the bound $R(3,3,3) > 16$, using the release build.
 Environment variables are managed by `build.rs` and are known at **compile-time**.
 
 
@@ -108,7 +108,6 @@ $R(3,8) = 28$ | tight | 3.658s | ```["Z?@wq@AWeOK?GQ?GaCu_A?@QXsDE@SEIAEAGKY?KOb
 $R(3,9) = 36$ | $\geq 33$ | 825.932ms | ```["_SB?A_EH`@L?HoCKB?O{O_p?c@gGXA?`bAH??SKG_?L??YO?GaUC`@CXO?oSBGAWOKIB@GWGDCQQAAPR?FA?", "_j{~\|^xu]}q~uNzr{~nBn^M~Z}Vve\|~][\|u~~jrv^~q~~dn~v\\hz]}zen~Nj{v\|fnrt{}vfvyzll\|\|mk~w\|{"]```
 | | $\geq 34$ | 191.455s | ```["`_?GC?A?toR???DOTOYOe??HCS`?GBBK@CWIUW_cg_UCo`A?Ir__GoGCkb?@OaO?]o??pAI?GskCC?_B?hGKAG^@?", "`^~vz~\|~INk~~~ynindnX~~uzj]~v{{r}zfthf^ZV^hzN]\|~tK^^vNvzR[~}n\\n~`N~~M\|t~vJRzz~^{~Uvr\|v_}~"]```
 | | $\geq 35$ | no results
-| | $\geq 36$ | no results
 
 ### $R(4, k)$
 
@@ -116,14 +115,16 @@ $R(4,k)$ | constructed lower bound | first-success elapsed time | construction (
 ---|---|---|---
 $R(4,4) = 18$ | tight | $283.924$ ms | ```["PcP_zojhJi\\omTkjXFG{tt{?", "PZm^CNSUsTaNPiRSewvBIIB{"]```
 $R(4,5) = 25$ | tight | 9.517s (lucky) | ```["WroZCHIHgEjy\\Mo^EKKN?iC]OIR[UoX`yx[FjwgCkRIbXf_", "WKNczutuVxSDapN_xrro~Tz`ntkbhNe]DEbwSFVzRkt[eW^"]```
-$R(4,6) \in [36,40]$ | | 
+$R(4,6) \in [36,40]$ | $\geq 33$ | 28.975s | ```["_g@\|{ui_DSua`AChBDPxsp`h[RbAExADaXCV@sWPhdDHjoAS[bPwc`]YMIX_CxSsIHQlpGH@J~AXIGK`e_sK", "_V}ABHT^yjH\\]\|zU{ymEJM]Ubk[\|xE\|y\\ezg}JfmUYyuSN\|jb[mFZ]`dpte^zEjJtulQMvu}s?\|etvr]X^Jo"]```
+| | $\geq 34$ | no results
 
 ### $R(5, k)$
 
 $R(5,k)$ | constructed lower bound | first-success elapsed time | construction (`g6` format)
 ---|---|---|---
-$R(5,5) \in [43,48]$ | $\geq 36$ |  | 
-| | $\geq 37$ | | 
+$R(5,5) \in [43,48]$ | $\geq 35$ | 32.017s | ```["aT`gWGl^JK{WUQkEJW]flSwRX}@MJuyMJKki[lJBnDW~q_LijxkQeeCBNbEgNqmMZtYsIhbhp\\mSvU?t]q^ARHmkSoJK{\\_", "ai]VfvQ_srBfhlRxsf`WQjFke@}psHDpsrRTbQs{Oyf?L^qTSERlXXz{o[xVoLPpcIdJtU[UMaPjGh~I`L_\|kuPRjNsrBaW"]```
+| | $\geq 36$ | 65.205s | ```["bWPLpU[]ZLXGqhlRAZ\|nqwohwXLwFWhzXO[ktRM~@\|cmOyc`[~OiZQYoxQH[\\mm?\\GQrRZHG`y~C[\|SHp\\TgzmfE`Dd_~^DxGdjR?", "bfmqMhb`cqevLUQk\|cAOLFNUFeqFwfUCenbRIkp?}AZPnDZ]b?nTcldNElubaPP~avlKkcuv]D?zbAjuMaiVCPWx]yY^?_yEvYSk_"]```
+| | $\geq 37$ | no results
 
 ## Multicolor Ramsey numbers
 

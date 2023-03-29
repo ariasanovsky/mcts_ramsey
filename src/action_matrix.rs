@@ -218,7 +218,7 @@ mod recolor_gradient_test {
                 (0, _) | (1, _) => assert_eq!(slope_1, Some(&choose(N-3, S[0]-2))),
                 (_, _) => assert_eq!(slope_1, Some(&(
                     choose(N-2, S[0]-2) - 
-                        if N >= 4 && S[0] >= 4 { choose(N-4, S[0]-4) }
+                        if N >= 4 && S[0] >= 4 { choose(N-4, S[0].checked_sub(4).unwrap()) }
                         else { 0 }
                 ))),
             }
