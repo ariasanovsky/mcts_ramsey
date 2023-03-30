@@ -1,3 +1,5 @@
+use rand::distributions::WeightedIndex;
+
 use crate::{search_maps::*, action_matrix::*, colored_graph::*};
 use crate::colored_graph::{EPOCHS, EPISODES};
 
@@ -48,7 +50,9 @@ pub fn play_epochs<const C: usize, const N: usize, const E: usize>
 pub fn search<const C: usize, const N: usize, const E: usize>()
 {
     let mut rng = rand::thread_rng();
-    let graph = ColoredGraph::<C, N>::uniformly_random(&mut rng);
+    let dist = WeightedIndex::new(&GUESS_P)
+        .unwrap();
+    let graph = ColoredGraph::<C, N>::random(&mut rng, &dist);
     let actions = ActionMatrix::from(graph);
     
     let mut score_keeper = ScoreKeeper::from(actions);

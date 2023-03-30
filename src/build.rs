@@ -66,9 +66,13 @@ fn main() {
         .map_or(Ok(4.5), str::parse)
         .expect("Could not parse EXPLORE");
 
-    write!(&mut f, "pub const EXPLORE: f64 = {explore};\n")
+        write!(&mut f, "pub const EXPLORE: f64 = {explore};\n")
         .expect("Could not write file");
     println!("cargo:rerun-if-env-changed=EXPLORE");
+
+    write!(&mut f, "pub const GUESS_P: [f64; S.len()] = [(1 as f64) / (S.len() as f64); S.len()];\n")
+        .expect("Could not write file");
+    println!("cargo:rerun-if-env-changed=S");
 
     let s: Vec<usize> = option_env!("S")
         .unwrap_or("[3, 3]")
