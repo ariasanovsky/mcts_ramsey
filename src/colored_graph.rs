@@ -85,7 +85,7 @@ mod math_tests {
     }
 }
 
-#[derive(Hash, Eq, PartialEq, Clone)]
+#[derive(Hash, Eq, PartialEq, Clone, Debug)]
 pub struct ColoredGraph<const C: usize, const N: usize> {
     neighborhoods: [[Uxx; N]; C]
 }
@@ -237,5 +237,11 @@ mod tests {
             assert_eq!(0,
                 red.count_cliques(c, None, None))
         }
+    }
+}
+
+impl<const C: usize, const N: usize> From<[[Uxx; N]; C]> for ColoredGraph<C, N> {
+    fn from(neighborhoods: [[Uxx; N]; C]) -> Self {
+        ColoredGraph { neighborhoods }
     }
 }
