@@ -17,14 +17,14 @@ fn main() {
     println!("GUESS_P  = {GUESS_P:?}");
     println!("Enter 'q' now to quit.");
 
-    use std::time::Instant;
-    let now = Instant::now();
-
     let mut input = String::new();
     io::stdin()
         .read_line(&mut input)
         .expect("Failed to read line");
     if input.contains('q') { return }
+
+    use std::time::Instant;
+    let now = Instant::now();
 
     search::<C, N, E>();
 
