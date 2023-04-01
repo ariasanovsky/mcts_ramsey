@@ -1,5 +1,6 @@
 use bit_fiddler::{is_set, set};
 use bit_iter::BitIter;
+use itertools::Itertools;
 use crate::colored_graph::*;
 
 
@@ -137,4 +138,53 @@ mod g6_graph_conversion_tests {
             graph.randomly_recolor(&mut rng)
         }
     }
+}
+
+impl<const C: usize, const N: usize> ColoredGraph<C, N> {
+    fn tikz(&self) -> String {
+        let size_in_cm = ":2cm";
+        let mut tikz = format!(
+            "{}\n\
+            {}\n\
+            {}\n\
+            {}\n\
+            {}\n]\n\
+            {}{}}} {{\n\
+            {}{}{}{}\n\
+            }};\n",
+            r"\usetikzlibrary{positioning}",
+            r"\begin{tikzpicture}[",
+            r"  main node/.style={circle,draw},",
+            r"  no edge/.style={dashed,draw},",
+            r"  yes edge/.style={draw},",
+            r"\foreach \Rotulo [count=\ci] in {0,...,",
+            N-1,
+            r"  \node[main node] (\ci) at (\ci*360/",
+            N,
+            size_in_cm,
+            r") {\Rotulo};"
+        );
+
+        for (u, v) in (0..N).tuple_combinations() {
+            let colored_edge = ColoredEdge { color: 0, edge: (u,v) };
+            if self.has_edge(colored_edge) {
+                tikz = format!("{tikz}\\draw ({}) [yes edge]-- ({});\n", u+1, v+1)
+            }
+            else {
+                tikz = format!("{tikz}\\draw ({}) [no edge]-- ({});\n", u+1, v+1)
+            }
+        }
+
+        format!(
+            "{tikz}{}",
+            r"\end{tikzpicture}"
+        )
+    }
+}
+
+#[test]
+fn foo() {
+    let mut rng = rand::thread_rng();
+    let graph = ColoredGraph::<2, 8>::uniformly_random(&mut rng);
+    println!("{}", graph.tikz());
 }
