@@ -32,7 +32,7 @@ Verbosity is determined by $N$.
 ## Custom Ramsey problems
 
 ```powershell
-$Env:N=16 ; $Env:S=3,3,3 ; $Env:EPOCHS=100 ; $Env:EPISODES=10000 ; $Env:EXPLORE=0.3 ; cargo run --release
+$Env:N=16 ; $Env:S=3,3,3 ; $Env:EPOCHS=100 ; $Env:EPISODES=10000 ; $Env:EXPLORE=5.5 ; cargo run --release
 ```
 
 finds a witness to the bound $R(3,3,3) > 16$, using the release build.
