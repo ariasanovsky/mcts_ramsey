@@ -4,7 +4,7 @@
 
 To set up, [install rust](https://www.rust-lang.org/tools/install), clone the repo, and execute `cargo run` in the project directory.
 
-Inside `./plots`, you will find newly generaated images
+Inside `./plots`, you will find newly generated images
 
 <center>
     <img src="./r[3, 3]_5_0.svg" alt="R(3,3)>5" width="100"/>
@@ -27,6 +27,9 @@ vertex 4: [0, 3] [1, 2]
 0; 10; 110; 0110;
 ["Dhc", "DUW"]
 1 minimum... ==== DONE ====
+Check out plots/r[3, 3]_5*.svg 😊
+R[3, 3] > 5
+Elapsed: 2.473ms
 ```
 
 describes the construction found by the program.
