@@ -9,13 +9,15 @@ use crate::{
 
 pub struct ScoreKeeper<const C: usize, const N: usize, const E: usize> {
     roots: Vec<ActionMatrix<C, N, E>>,
-    best_count: Iyy
+    best_count: Iyy,
+    name: String
 }
 
 impl<const C: usize, const N: usize, const E: usize> From<ActionMatrix<C, N, E>> for ScoreKeeper<C, N, E> {
     fn from(actions: ActionMatrix<C, N, E>) -> Self {
         let count = actions.total();
-        ScoreKeeper { roots: vec![actions], best_count: count }
+        let name = format!("r{S:?}_{N}");
+        ScoreKeeper { roots: vec![actions], best_count: count, name }
     }
 }
 
@@ -75,8 +77,14 @@ impl<const C: usize, const N: usize, const E: usize> ScoreKeeper<C, N, E> {
                     println!();
                 }
                 println!("{:?}", self.roots[0].graph().graph6s());
+                let docs = actions
+                    .graph()
+                    .svg(self.name.clone());
+                docs.render();
+                
                 print!("\r{} minimum... ", self.roots.len());
                 if count == 0 {
+                    println!("==== DONE ====\nCheck out plots/{}*.svg 😊", self.name);
                     ScoreUpdate::Done
                 }
                 else {

@@ -140,8 +140,34 @@ mod g6_graph_conversion_tests {
     }
 }
 
+// temporarily lifting from plotters: https://docs.rs/plotters/latest/src/plotters/style/palette.rs.html#17
+const COLORS: &'static [(u8, u8, u8)] = &[
+    (230, 25, 75),
+    (60, 180, 75),
+    (255, 225, 25),
+    (0, 130, 200),
+    (245, 130, 48),
+    (145, 30, 180),
+    (70, 240, 240),
+    (240, 50, 230),
+    (210, 245, 60),
+    (250, 190, 190),
+    (0, 128, 128),
+    (230, 190, 255),
+    (170, 110, 40),
+    (255, 250, 200),
+    (128, 0, 0),
+    (170, 255, 195),
+    (128, 128, 0),
+    (255, 215, 180),
+    (0, 0, 128),
+    (128, 128, 128),
+    (0, 0, 0),
+];
+
+
 impl<const C: usize, const N: usize> ColoredGraph<C, N> {
-    fn tikz(&self) -> String {
+    fn tikz(&self) -> Vec<String> { // todo!("render at runtime w/ tectonic? best on linux...")
         let size_in_cm = ":2cm";
         let mut tikz = format!(
             "{}\n\
@@ -175,16 +201,108 @@ impl<const C: usize, const N: usize> ColoredGraph<C, N> {
             }
         }
 
-        format!(
+        tikz = format!(
             "{tikz}{}",
             r"\end{tikzpicture}"
-        )
+        );
+
+        vec!(tikz)
     }
 }
 
 #[test]
-fn foo() {
+fn can_generate_tikz() {
     let mut rng = rand::thread_rng();
     let graph = ColoredGraph::<2, 8>::uniformly_random(&mut rng);
-    println!("{}", graph.tikz());
+    println!("{}", graph.tikz()[0]);
+}
+
+const fn usize_sqrt(n: usize) -> usize {
+    let mut s = 0;
+    while s*s < n {
+        s += 1;
+    }
+    s
+}
+
+use svg::{
+    Document,
+    node::element::{Path, Circle, path::Data}
+};
+
+pub struct GraphPics {
+    pics: Vec<Document>,
+    name: String
+}
+
+impl GraphPics {
+    pub fn render(&self) {
+        for (c, pic) in self.pics.iter().enumerate() {
+            svg::save(
+                format!("plots/{}_{c}.svg", self.name), 
+                pic)
+            .unwrap();
+        }
+    }
+}
+
+impl<const C: usize, const N: usize> ColoredGraph<C, N> {
+    pub fn svg(&self, name: String) -> GraphPics {
+        let k: f64 = std::f64::consts::TAU / N as f64;
+        let r: f64 = usize_sqrt(N) as f64;
+        
+        let pos: [(f64, f64); N] = std::array::from_fn(
+            |i|
+            {
+                let theta = k * i as f64;
+                let (sin, cos) = theta.sin_cos();
+                (r*cos, r*sin)
+            }
+        );
+
+        let pics = (0..C).map(|c| {
+            let mut document = Document::new()
+                .set("viewBox", (-2.*r, -2.*r, 4.*r, 4.*r));
+            
+            for (u, v) in (0..N).tuple_combinations() {
+                let colored_edge = ColoredEdge { color: c, edge: (u, v) };
+                if self.has_edge(colored_edge) {
+                    let data = Data::new()
+                        .move_to(pos[u])
+                        .line_to(pos[v]);
+
+                    let (red, green, blue) = COLORS[c];
+
+                    let path = Path::new()
+                        .set("fill", "none")
+                        .set("stroke", format!("rgb({red}, {green}, {blue})"))
+                        .set("stroke-width", 0.05)
+                        .set("d", data);
+
+                    document = document.clone().add(path); 
+                }   
+            }
+
+            for (x, y) in pos {
+                let node = Circle::new()
+                    .set("cx", x)
+                    .set("cy", y)
+                    .set("r", 0.1);
+                document = document.clone().add(node);
+            }
+            document
+        }).collect();
+        GraphPics { pics, name }
+    }
+}
+
+#[test]
+fn can_generate_svg() {
+    const C: usize = 3;
+    const N: usize = 8;
+    
+    let mut rng = rand::thread_rng();
+    let graph = ColoredGraph::<C, N>::uniformly_random(&mut rng);
+    let docs = graph.svg(String::from("test"));
+    docs.render()
 }

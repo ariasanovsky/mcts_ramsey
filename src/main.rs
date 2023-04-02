@@ -9,6 +9,24 @@ const C: usize = S.len();
 const E: usize = choose_two(N);
 
 fn main() {
+
+    let args: Vec<String> = std::env::args().collect();
+    if args.contains(&String::from("clean")) {
+        /* https://stackoverflow.com/a/69987121 */
+        for path in std::fs::read_dir("./plots/").unwrap() {
+            let path = path.unwrap().path();
+            let extension = path.extension().unwrap();
+            use std::ffi::OsStr;
+            if extension == OsStr::new("svg") {
+                std::fs::remove_file(path).unwrap();
+            }
+        }
+        println!("plots/*.svg cleared 😊")
+    }
+    else {
+        println!("To clear plots/*.svg, pass 'clean' as an argument 😊")
+    }
+
     println!("Goal: prove R{S:?} > {N}.");
     println!("EPOCHS   = {EPOCHS}");
     println!("EPISODES = {EPISODES}");
