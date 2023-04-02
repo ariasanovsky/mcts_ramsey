@@ -4,25 +4,31 @@
 
 To set up, [install rust](https://www.rust-lang.org/tools/install), clone the repo, and execute `cargo run` in the project directory.
 
-This (hopefully) constructs a lower bound for the [Ramsey problem](https://en.wikipedia.org/wiki/Ramsey's_theorem) $R(3,3)$.
-It should look something like this:
+Inside `./plots`, you will find newly generaated images
 
-<center><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/RamseyTheory_K5_no_mono_K3.svg/1280px-RamseyTheory_K5_no_mono_K3.svg.png" alt="R(3,3)>5" width="300"/></center>
-<center>R(3,3) > 5</center>
+<center>
+    <img src="./r[3, 3]_5_0.svg" alt="R(3,3)>5" width="100"/>
+    <img src="./r[3, 3]_5_1.svg" alt="R(3,3)>5" width="100"/>
+</center>
+
+which witness the lower bound $R(3,3) > 5$.
+Your construction may not look the same, but it is isomorphic (identical up to vertex relabeling) to this one.
 
 The output
-```
+
+```powershell
 ==== EPOCH ==== 1
 score improved to 0 by
-vertex 0: [2, 4] [1, 3]
-vertex 1: [3, 4] [0, 2]
-vertex 2: [0, 3] [1, 4]
-vertex 3: [1, 2] [0, 4]
-vertex 4: [0, 1] [2, 3]
-1; 01; 100; 0011;
-["DRo", "DkK"]
-1 minimum... R[3, 3] > 5
+vertex 0: [1, 4] [2, 3]
+vertex 1: [0, 2] [3, 4]
+vertex 2: [1, 3] [0, 4]
+vertex 3: [2, 4] [0, 1]
+vertex 4: [0, 3] [1, 2]
+0; 10; 110; 0110;
+["Dhc", "DUW"]
+1 minimum... ==== DONE ====
 ```
+
 describes the construction found by the program.
 First, vertices are paired with their neighborhoods in each color.
 Second, the edges are enumerated in colex order with their colors.

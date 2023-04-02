@@ -262,7 +262,7 @@ impl<const C: usize, const N: usize> ColoredGraph<C, N> {
 
         let pics = (0..C).map(|c| {
             let mut document = Document::new()
-                .set("viewBox", (-2.*r, -2.*r, 4.*r, 4.*r));
+                .set("viewBox", (-1.1*r, -1.1*r, 2.2*r, 2.2*r));
             
             for (u, v) in (0..N).tuple_combinations() {
                 let colored_edge = ColoredEdge { color: c, edge: (u, v) };
