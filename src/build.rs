@@ -4,7 +4,7 @@ use std::{env, fs::File, io::Write, path::Path};
 fn main() {
     let out_dir = env::var("OUT_DIR").expect("No out dir");
     let dest_path = Path::new(&out_dir).join("constants.rs");
-    let mut f = File::create(&dest_path).expect("Could not create file");
+    let mut f = File::create(dest_path).expect("Could not create file");
     
     let n = option_env!("N")
         .map_or(Ok(5), str::parse)

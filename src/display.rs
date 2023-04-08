@@ -33,7 +33,7 @@ impl<const C: usize, const N: usize> ColoredGraph<C, N> {
             std::cmp::Ordering::Greater => todo!("large N g6 prefix")
         };
 
-        let (mut word, mut pos) = (0 as u8, 5 as usize);
+        let (mut word, mut pos): (u8, usize) = (0, 5);
         for (u, v) in (0..N).flat_map(|v| (0..v).map(move |u| (u, v))) {
             let colored_edge = ColoredEdge {color, edge: (v, u)};
             if self.has_edge(colored_edge) {
