@@ -10,7 +10,7 @@ fn main() {
         .map_or(Ok(5), str::parse)
         .expect("Could not parse N");
 
-    write!(&mut f, "pub const N: usize = {n};\n")
+    writeln!(&mut f, "pub const N: usize = {n};")
         .expect("Could not write file");
     println!("cargo:rerun-if-env-changed=N");
 
@@ -34,7 +34,7 @@ fn main() {
         _ => "u64"
     };
 
-    write!(&mut f, "pub type Uxx = {uxx};\npub type Iyy = {iyy};\npub type Uzz = {uzz};\n")
+    writeln!(&mut f, "pub type Uxx = {uxx};\npub type Iyy = {iyy};\npub type Uzz = {uzz};")
         .expect("Could not write file");
     println!("cargo:rerun-if-env-changed=N");
 
@@ -42,7 +42,7 @@ fn main() {
         .map_or(Ok(50), str::parse)
         .expect("Could not parse EPOCHS");
 
-    write!(&mut f, "pub const EPOCHS: usize = {epochs};\n")
+    writeln!(&mut f, "pub const EPOCHS: usize = {epochs};")
         .expect("Could not write file");
     println!("cargo:rerun-if-env-changed=EPOCHS");
 
@@ -50,7 +50,7 @@ fn main() {
         .map_or(Ok(10_000), str::parse)
         .expect("Could not parse EPISODES");
 
-    write!(&mut f, "pub const EPISODES: Uzz = {episodes};\n")
+    writeln!(&mut f, "pub const EPISODES: Uzz = {episodes};")
         .expect("Could not write file");
     println!("cargo:rerun-if-env-changed=EPISODES");
 
@@ -58,7 +58,7 @@ fn main() {
         .map_or(Ok(250), str::parse)
         .expect("Could not parse ROOTS");
 
-    write!(&mut f, "pub const ROOTS: usize = {roots};\n")
+    writeln!(&mut f, "pub const ROOTS: usize = {roots};")
         .expect("Could not write file");
     println!("cargo:rerun-if-env-changed=ROOTS");
 
@@ -66,22 +66,22 @@ fn main() {
         .map_or(Ok(4.5), str::parse)
         .expect("Could not parse EXPLORE");
 
-        write!(&mut f, "pub const EXPLORE: f64 = {explore};\n")
+        writeln!(&mut f, "pub const EXPLORE: f64 = {explore};")
         .expect("Could not write file");
     println!("cargo:rerun-if-env-changed=EXPLORE");
 
-    write!(&mut f, "pub const GUESS_P: [f64; S.len()] = [(1 as f64) / (S.len() as f64); S.len()];\n")
+    writeln!(&mut f, "pub const GUESS_P: [f64; S.len()] = [1_f64 / (S.len() as f64); S.len()];")
         .expect("Could not write file");
     println!("cargo:rerun-if-env-changed=S");
 
     let s: Vec<usize> = option_env!("S")
         .unwrap_or("[3, 3]")
         .split(|c: char| !c.is_numeric())
-        .filter(|s| s.len() > 0)
+        .filter(|s| !s.is_empty())
         .map(|s| s.parse().unwrap())
         .collect();
     
-    write!(&mut f, "pub const S: [usize; {}] = {s:?};\n", s.len())
+    writeln!(&mut f, "pub const S: [usize; {}] = {s:?};", s.len())
         .expect("Could not write file");
     println!("cargo:rerun-if-env-changed=S");
 }

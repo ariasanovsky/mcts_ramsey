@@ -141,7 +141,7 @@ mod g6_graph_conversion_tests {
 }
 
 // temporarily lifting from plotters: https://docs.rs/plotters/latest/src/plotters/style/palette.rs.html#17
-const COLORS: &'static [(u8, u8, u8)] = &[
+const COLORS: &[(u8, u8, u8)] = &[
     (230, 25, 75),
     (60, 180, 75),
     (255, 225, 25),
@@ -167,7 +167,7 @@ const COLORS: &'static [(u8, u8, u8)] = &[
 
 
 impl<const C: usize, const N: usize> ColoredGraph<C, N> {
-    fn tikz(&self) -> Vec<String> { // todo!("render at runtime w/ tectonic? best on linux...")
+    fn _tikz(&self) -> Vec<String> { // todo!("render at runtime w/ tectonic? best on linux...")
         let size_in_cm = ":2cm";
         let mut tikz = format!(
             "{}\n\
@@ -214,7 +214,7 @@ impl<const C: usize, const N: usize> ColoredGraph<C, N> {
 fn can_generate_tikz() {
     let mut rng = rand::thread_rng();
     let graph = ColoredGraph::<2, 8>::uniformly_random(&mut rng);
-    println!("{}", graph.tikz()[0]);
+    println!("{}", graph._tikz()[0]);
 }
 
 const fn usize_sqrt(n: usize) -> usize {
