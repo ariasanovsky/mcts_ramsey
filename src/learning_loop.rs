@@ -11,12 +11,11 @@ pub fn play_episode<const C: usize, const N: usize, const E: usize>
     /* let mut seen_edges = [false; E]; */
     // todo("clone the whole ActionMatrix instead?")
     for _ in 0..n_moves {
-        match g_map.next_action(&mut action_matrix, score_keeper, /* &mut seen_edges */) {
-            Some(ScoreUpdate::Done) => return Some(ScoreUpdate::Done),
-            _ => {}
+        if let Some(ScoreUpdate::Done) = g_map.next_action(&mut action_matrix, score_keeper, /* &mut seen_edges */) {
+            return Some(ScoreUpdate::Done)
         }
     }
-    return None
+    None
 }
 
 pub fn play_epoch<const C: usize, const N: usize, const E: usize>
@@ -24,9 +23,8 @@ pub fn play_epoch<const C: usize, const N: usize, const E: usize>
 {
     for i in 1..(n_episodes+1) {
         if i % (10 * EPISODES) == 0 { println!("== EPISODE == {i}") }
-        match play_episode(g_map, score_keeper, n_moves) {
-            Some(ScoreUpdate::Done) => return Some(ScoreUpdate::Done),
-            _ => {}
+        if let Some(ScoreUpdate::Done) = play_episode(g_map, score_keeper, n_moves) {
+            return Some(ScoreUpdate::Done)
         }
     }
     None
@@ -37,12 +35,9 @@ pub fn play_epochs<const C: usize, const N: usize, const E: usize>
 {
     for epoch in 1..(EPOCHS+1) {
         println!("==== EPOCH ==== {epoch}");
-        match play_epoch::<C, N, E>(g_map, score_keeper, E/4 + epoch, EPISODES) {
-            Some(ScoreUpdate::Done) => {
-                println!("R{S:?} > {N}");
-                return
-            },
-            _ => {}
+        if let Some(ScoreUpdate::Done) = play_epoch::<C, N, E>(g_map, score_keeper, E/4 + epoch, EPISODES) {
+            println!("R{S:?} > {N}");
+            return
         }
     }
 }

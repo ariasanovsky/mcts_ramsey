@@ -47,5 +47,5 @@ fn main() {
     search::<C, N, E>();
 
     let elapsed = now.elapsed();
-    println!("Elapsed: {:.3?}", elapsed);
+    println!("Elapsed: {elapsed:.3?}");
 }

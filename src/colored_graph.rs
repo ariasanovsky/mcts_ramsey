@@ -179,13 +179,11 @@ impl<const C: usize, const N: usize> ColoredGraph<C, N> {
     }
 
     pub fn color(&self, (u, v): Edge) -> Option<Color> {
-        match self.neighborhoods
+        self.neighborhoods
             .iter()
-            .position(|&neighborhood| 
-            is_set!((neighborhood[u]), Uxx, v)) {
-                Some(c) => Some(c),
-                None => None
-        }
+            .position(
+                |&neighborhood| 
+                is_set!((neighborhood[u]), Uxx, v))
     }
 
     pub fn bit_neighborhood(&self, color: Color, u: Vertex) -> Uxx {

@@ -100,15 +100,10 @@ pub struct ActionMap {
     actions: HashMap<Action, (Iyy, Uzz)>
 }
 
+#[derive(Default)]
 pub struct GraphData {
     n_visits: Uzz,
     action_map: ActionMap
-}
-
-impl Default for GraphData {
-    fn default() -> Self {
-        Self { n_visits: 0, action_map: Default::default() }
-    }
 }
 
 impl GraphData {

@@ -29,10 +29,10 @@ impl<const C: usize, const N: usize, const E: usize> From<ColoredGraph<C, N>> fo
             let old_count = graph.count_edge_cliques(old_color, (u,v));
             totals[old_color] += old_count;
             counts[old_color][pos] = old_count;
-            for new_color in 0..C {
+            for (new_color, color_counts) in counts.iter_mut().enumerate() {
                 if new_color != old_color {
                     let new_count = graph.count_edge_cliques(new_color, (u,v));
-                    counts[new_color][pos] = new_count;
+                    color_counts[pos] = new_count;
                     actions.push((new_color, pos), old_count - new_count);
                 }
             }
@@ -242,7 +242,7 @@ impl<const C: usize, const N: usize, const E: usize> ActionMatrix<C, N, E> {
 
     pub fn score(&self) -> Iyy {
         let mut score: Iyy = 0;
-        for color in 0..C {
+        for (color, &s) in S.iter().enumerate() {
             let mut color_score: Iyy = 0;
             for (pos, (u,v)) in (0..N).tuple_combinations().enumerate() {
                 let colored_edge = ColoredEdge { color, edge: (u, v) };
@@ -250,7 +250,7 @@ impl<const C: usize, const N: usize, const E: usize> ActionMatrix<C, N, E> {
                     color_score += self.counts[color][pos]
                 }
             }
-            score += color_score / choose(S[color], 2)
+            score += color_score / choose(s, 2)
         };
         score
     }
