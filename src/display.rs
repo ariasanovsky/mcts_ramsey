@@ -1,7 +1,6 @@
 use crate::{prelude::*, neighborhood::*};
 
-use bit_fiddler::{is_set, set};
-use bit_iter::BitIter;
+use bit_fiddler::{is_set};
 use itertools::Itertools;
 use crate::colored_graph::*;
 
@@ -23,7 +22,7 @@ ColoredGraph<T, C, N> {
         for u in 0..N {
             print!("vertex {u}:");
             for c in 0..C {
-                print!(" {:?}", BitIter::from(self.bit_neighborhood(c, u)).collect::<Vec<_>>());
+                print!(" {:?}", self.bit_neighborhood(c, u).iter().collect::<Vec<_>>());
             }
             println!();
         }
@@ -84,7 +83,7 @@ TryFrom<&Vec<String>> for ColoredGraph<T, C, N> {
     type Error = String;
 
     fn try_from(strings: &Vec<String>) -> Result<Self, Self::Error> {
-        let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
+        let mut neighborhoods: [[T; N]; C] = [[T::default(); N]; C];
         for (c, string) in strings.iter().enumerate() {
             let n = string.as_bytes()[0] - 63;
             if n != (N as u8) { return Err(format!("{n} != {N}")) }
@@ -97,8 +96,8 @@ TryFrom<&Vec<String>> for ColoredGraph<T, C, N> {
                     curr_char = string.as_bytes()[i] - 63;
                 }
                 if is_set!(curr_char, u8, pos) {
-                    neighborhoods[c][u] = set!((neighborhoods[c][u]), Uxx, v);
-                    neighborhoods[c][v] = set!((neighborhoods[c][v]), Uxx, u);
+                    neighborhoods[c][u].add(v);
+                    neighborhoods[c][v].add(u);
                 }
                 if pos == 0 {
                     pos = 5;

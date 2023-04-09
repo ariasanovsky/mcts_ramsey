@@ -2,8 +2,6 @@ use std::marker::PhantomData;
 
 use crate::{prelude::*, neighborhood::Neighborhood};
 
-use bit_fiddler::unset;
-use bit_iter::BitIter;
 use priority_queue::PriorityQueue;
 pub use itertools::Itertools;
 use rand::rngs::ThreadRng;
@@ -130,8 +128,9 @@ ActionMatrix<T, C, N, E> {
 
         let neighbors_uv = self.graph.common_neighborhood(color, u, v);
         for (u, v) in [(u, v), (v, u)] {
-            let neighbors_u = unset!((self.graph.bit_neighborhood(color, u)), Uxx, v);
-            for w in BitIter::from(neighbors_u) {
+            let mut neighbors_u = self.graph.bit_neighborhood(color, u).clone();
+            neighbors_u.delete(v);
+            for w in neighbors_u.iter() {
                 let neighbors_uvw = neighbors_uv & self.graph.bit_neighborhood(color, w);
                 let count_uvw = self.graph.count_cliques(color, Some(s-3), Some(neighbors_uvw));
                 self.adjust_count::<IS_DELETION>(color, (v,w), count_uvw)
@@ -140,7 +139,7 @@ ActionMatrix<T, C, N, E> {
 
         if s < 4 { return }
         
-        for (w, x) in BitIter::from(neighbors_uv).tuple_combinations() {
+        for (w, x) in neighbors_uv.iter().tuple_combinations() {
             let candidates = neighbors_uv & self.graph.common_neighborhood(color, w, x);
             let count_uvwx = self.graph.count_cliques(color, Some(s-4), Some(candidates));
             self.adjust_count::<IS_DELETION>(color, (w,x), count_uvwx)

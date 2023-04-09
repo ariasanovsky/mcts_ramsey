@@ -1,13 +1,9 @@
-use std::marker::PhantomData;
-
 use crate::neighborhood::*;
 use crate::prelude::*;
 
-use bit_fiddler::{set, unset, is_set, mask};
 use itertools::Itertools;
 use rand::prelude::*;
 use rand::distributions::WeightedIndex;
-use bit_iter::BitIter;
 
 pub struct ColoredEdge {
     pub color: Color,
@@ -26,8 +22,7 @@ impl<const N: usize> Recoloring<N> {
 
 #[derive(Hash, Eq, PartialEq, Clone, Debug)]
 pub struct ColoredGraph<T: Neighborhood, const C: usize, const N: usize> {
-    neighborhoods: [[Uxx; N]; C],
-    phantom: PhantomData<T>
+    neighborhoods: [[T; N]; C]
 }
 
 pub fn random_edge<const N: usize>(rng: &mut ThreadRng) -> Edge {
@@ -44,15 +39,15 @@ ColoredGraph<T, C, N> {
         .sum()
     }
     
-    pub fn count_cliques(&self, color: Color, s: Option<usize>, candidates: Option<Uxx>) -> Iyy {
+    pub fn count_cliques(&self, color: Color, s: Option<usize>, candidates: Option<T>) -> Iyy {
         let s = s.unwrap_or(S[color]);
         if s == 0 { return 1 }
         
-        let candidates = candidates.unwrap_or(mask!([0..N], Uxx));
-        if s == 1 { return candidates.count_ones() as Iyy } 
+        let candidates = candidates.unwrap_or(T::default());
+        if s == 1 { return candidates.n_elements() as Iyy } 
         
-        BitIter::from(candidates)
-            .map(|u| candidates & self.bit_neighborhood(color, u) & mask!([u..N], Uxx))
+        candidates.iter()
+            .map(|u| candidates & self.bit_neighborhood(color, u) & T::full())
             .map(|candidates| self.count_cliques(color, Some(s-1), Some(candidates)))
             .sum()
     }
@@ -64,47 +59,43 @@ ColoredGraph<T, C, N> {
     }
     
     pub fn red() -> ColoredGraph<T, C, N> {
-        let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
+        let mut neighborhoods: [[T; N]; C] = [[T::full(); N]; C];
         for u in 0..N {
-            let mut neighborhood = mask!([0..N], Uxx);
-            unset!(in neighborhood, Uxx, u);
-            neighborhoods[0][u] = neighborhood
+            neighborhoods[0][u].delete(u)
         }
-        ColoredGraph { neighborhoods, phantom: PhantomData }
+        ColoredGraph { neighborhoods }
     }
 
     pub fn uniformly_random(rng: &mut ThreadRng) -> ColoredGraph<T, C, N> {
-        let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
+        let mut neighborhoods: [[T; N]; C] = [[T::default(); N]; C];
         for (u, v) in (0..N).tuple_combinations() {
             let c = rng.gen_range(0..C);
-            neighborhoods[c][u] = set!((neighborhoods[c][u]), Uxx, v);
-            neighborhoods[c][v] = set!((neighborhoods[c][v]), Uxx, u);
+            neighborhoods[c][u].add(v);
+            neighborhoods[c][v].add(u)
         }
         
-        ColoredGraph { neighborhoods, phantom: PhantomData }
+        ColoredGraph { neighborhoods }
     }
 
     pub fn random(rng: &mut ThreadRng, dist: &WeightedIndex<f64>) -> ColoredGraph<T, C, N> {
-        let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
+        let mut neighborhoods: [[T; N]; C] = [[T::default(); N]; C];
         for (u, v) in (0..N).tuple_combinations() {
             let c = rng.sample(dist);
-            neighborhoods[c][u] = set!((neighborhoods[c][u]), Uxx, v);
-            neighborhoods[c][v] = set!((neighborhoods[c][v]), Uxx, u);
+            neighborhoods[c][u].add(v);
+            neighborhoods[c][v].add(u)
         }
         
-        ColoredGraph { neighborhoods, phantom: PhantomData }
+        ColoredGraph { neighborhoods }
     }
 
-    fn add(&mut self, c: Color, edge: Edge) {
-        let (u, v) = edge;
-        self.neighborhoods[c][u] = set!((self.neighborhoods[c][u]), Uxx, v);
-        self.neighborhoods[c][v] = set!((self.neighborhoods[c][v]), Uxx, u);
+    fn add(&mut self, c: Color, (u,v): Edge) {
+        self.neighborhoods[c][u].add(v);
+        self.neighborhoods[c][v].add(u)
     }
 
-    fn delete(&mut self, c: Color, edge: Edge) {
-        let (u, v) = edge;
-        self.neighborhoods[c][u] = unset!((self.neighborhoods[c][u]), Uxx, v);
-        self.neighborhoods[c][v] = unset!((self.neighborhoods[c][v]), Uxx, u);
+    fn delete(&mut self, c: Color, (u,v): Edge) {
+        self.neighborhoods[c][u].delete(v);
+        self.neighborhoods[c][v].delete(u)
     }
 
     pub fn recolor(&mut self, recolor: Recoloring<N>) {
@@ -113,25 +104,23 @@ ColoredGraph<T, C, N> {
     }
 
     pub fn has_edge(&self, colored_edge: ColoredEdge) -> bool {
-        let ColoredEdge { color, edge } = colored_edge;
-        let (u, v) = edge;
-        
-        is_set!((self.bit_neighborhood(color, u)), Uxx, v)
+        let ColoredEdge { color, edge: (u, v) } = colored_edge;
+        self.bit_neighborhood(color, u).contains(v)
     }
 
     pub fn color(&self, (u, v): Edge) -> Option<Color> {
         self.neighborhoods
             .iter()
             .position(
-                |&neighborhood| 
-                is_set!((neighborhood[u]), Uxx, v))
+                |neighborhood| 
+                neighborhood[u].contains(v))
     }
 
-    pub fn bit_neighborhood(&self, color: Color, u: Vertex) -> Uxx {
+    pub fn bit_neighborhood(&self, color: Color, u: Vertex) -> T {
         self.neighborhoods[color][u]
     }
 
-    pub fn common_neighborhood(&self, color: Color, u: Vertex, v: Vertex) -> Uxx {
+    pub fn common_neighborhood(&self, color: Color, u: Vertex, v: Vertex) -> T {
         self.bit_neighborhood(color, u) & 
         self.bit_neighborhood(color, v)
     }
@@ -184,8 +173,8 @@ mod tests {
 }
 
 impl<T: Neighborhood, const C: usize, const N: usize>
-From<[[Uxx; N]; C]> for ColoredGraph<T, C, N> {
-    fn from(neighborhoods: [[Uxx; N]; C]) -> Self {
-        ColoredGraph { neighborhoods, phantom: PhantomData }
+From<[[T; N]; C]> for ColoredGraph<T, C, N> {
+    fn from(neighborhoods: [[T; N]; C]) -> Self {
+        ColoredGraph { neighborhoods }
     }
 }
