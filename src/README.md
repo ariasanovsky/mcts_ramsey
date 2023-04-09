@@ -145,6 +145,7 @@ Currently, the first root graph $G$ is selected as a uniformly random $C$-edge-c
 When $S$ is nonuniform, this choice is far from optimal.
 Better would be to select $G\sim\mathbb{G}(N, p^\star)$ where $p^\star$ minimizes the expected cost over $G\sim \mathbb{G}(N, p)$.
 That is,
+<!-- 
 
 $$
 \left\langle
@@ -158,7 +159,7 @@ $$
 \sum_c \mathbb{E}_{G\sim\mathbb{G}(N, p_c)}
 \kappa_{S[c]}(G)
 =
-$$
+$$ -->
 
 $$
 \sum_c\binom{N}{S[c]}\cdot p_c^{\binom{S[c]}{2}}
