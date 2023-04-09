@@ -152,8 +152,14 @@ $$
 \kappa_S(G)
 \right]\right\rangle
 =
+$$
+
+$$
 \sum_c \mathbb{E}_{G\sim\mathbb{G}(N, p_c)}\left[ \kappa_{S[c]}(G) \right]
 =
+$$
+
+$$
 \sum_c\binom{N}{S[c]}\cdot p_c^{\binom{S[c]}{2}}
 $$
 
@@ -161,7 +167,7 @@ over all $C$-dimensional probability vectors $p$.
 As a second optimization, we may also use the vector
 
 $$
-\mathbb{E}_{G\sim \mathbb{G}(N, p^*)}\left[
+\mathbb{E}_{G\sim \mathbb{G}(N, p^\star)}\left[
 \kappa_S(G)
 \right]
 $$
