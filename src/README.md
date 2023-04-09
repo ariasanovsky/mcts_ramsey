@@ -153,6 +153,9 @@ $$
 \right\rangle
 =
 \sum_c \mathbb{E} \kappa_{S[c]}(G)
+$$
+
+$$
 =
 \sum_c\binom{N}{S[c]}\cdot p_c^{\binom{S[c]}{2}}
 $$
