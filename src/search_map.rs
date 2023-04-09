@@ -161,16 +161,18 @@ pub struct GraphMap<T: Neighborhood, const C: usize, const N: usize, const E: us
     graphs: HashMap<ColoredGraph<T, C, N>, GraphData>
 }
 
-impl<T: Neighborhood, const C: usize, const N: usize, const E: usize> GraphMap<T, C, N, E> {
+impl<T: Neighborhood, const C: usize, const N: usize, const E: usize>
+GraphMap<T, C, N, E>
+{
     pub fn next_action(
         &mut self,
         actions: &mut ActionMatrix<T, C, N, E>,
         score_keeper: &mut ScoreKeeper<T, C, N, E>,
-        // seen_edges: &mut [bool; E]
-    ) -> Option<ScoreUpdate> {
+    ) -> Option<(ScoreUpdate, Action)>
+    {
         let graph_data = self.graphs.entry(actions.graph().clone())
             .or_insert(GraphData::default());
-        let best_visited = graph_data.visited_argmax(); //seen_edges);
+        let best_visited = graph_data.visited_argmax();
         let default_nu = graph_data.default_nu();
 
         // todo!("would be nice to implement this with a general predicate in the priority_queue crate")
@@ -216,7 +218,12 @@ impl<T: Neighborhood, const C: usize, const N: usize, const E: usize> GraphMap<T
         // seen_edges[best_action.1] = true;
         actions.act(best_action);
         graph_data.record(best_action, q_ga);
-        Some(score_keeper.update(actions))
+        Some((score_keeper.update(actions), best_action))
 
     }
+
+    pub fn update_counts(&mut self, chosen_root: &mut ActionMatrix<T, C, N, E>, actions_taken: Vec<Action>) {
+        
+    }
+    
 }

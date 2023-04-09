@@ -8,12 +8,19 @@ pub fn play_episode<T: Neighborhood, const C: usize, const N: usize, const E: us
 (g_map: &mut GraphMap<T, C, N, E>, score_keeper: &mut ScoreKeeper<T, C, N, E>, n_moves: usize) -> Option<ScoreUpdate>
 {
     let mut rng = rand::thread_rng();
-    let mut action_matrix = score_keeper.random_root(&mut rng).clone();
+    let mut chosen_root = score_keeper.random_root(&mut rng).clone();
+    let mut action_matrix = chosen_root.clone();
+    let mut actions_taken = vec!();
     for _ in 0..n_moves {
-        if let Some(ScoreUpdate::Done) = g_map.next_action(&mut action_matrix, score_keeper, /* &mut seen_edges */) {
-            return Some(ScoreUpdate::Done)
+        match g_map.next_action(&mut action_matrix, score_keeper) {
+            Some((ScoreUpdate::Done, _)) => return Some(ScoreUpdate::Done),
+            Some((_, action)) => actions_taken.push(action),
+            None => todo!("refactor the return type")
         }
     }
+
+    g_map.update_counts(&mut chosen_root, actions_taken);
+
     None
 }
 
