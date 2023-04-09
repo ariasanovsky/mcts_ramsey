@@ -1,3 +1,7 @@
+use std::marker::PhantomData;
+
+use crate::{prelude::*, neighborhood::Neighborhood};
+
 use bit_fiddler::unset;
 use bit_iter::BitIter;
 use priority_queue::PriorityQueue;
@@ -10,15 +14,16 @@ pub type EdgePos = usize;
 pub type Action = (Color, EdgePos);
 
 #[derive(Clone)]
-pub struct ActionMatrix<const C: usize, const N: usize, const E: usize> {
+pub struct ActionMatrix<T: Neighborhood, const C: usize, const N: usize, const E: usize> {
     counts: [[Iyy; E]; C],
-    graph: ColoredGraph<C, N>,
+    graph: ColoredGraph<T, C, N>,
     actions: PriorityQueue<Action, Iyy>,
-    totals: [Iyy; C]
+    totals: [Iyy; C],
+    phantom: PhantomData<T>
 }
 
-impl<const C: usize, const N: usize, const E: usize> From<ColoredGraph<C, N>> for ActionMatrix<C, N, E> {
-    fn from(graph: ColoredGraph<C, N>) -> Self {
+impl<T: Neighborhood, const C: usize, const N: usize, const E: usize> From<ColoredGraph<T, C, N>> for ActionMatrix<T, C, N, E> {
+    fn from(graph: ColoredGraph<T, C, N>) -> Self {
         let mut counts: [[Iyy; E]; C] = [[0; E]; C];
         let mut actions: PriorityQueue<Action, Iyy> = Default::default();
         let mut totals: [Iyy; C] = [0; C];
@@ -42,7 +47,7 @@ impl<const C: usize, const N: usize, const E: usize> From<ColoredGraph<C, N>> fo
             totals[c] /= choose(S[c], 2)
         }
 
-        ActionMatrix { counts, graph, actions, totals }
+        ActionMatrix { counts, graph, actions, totals, phantom: PhantomData }
     }
 }
 
@@ -54,17 +59,19 @@ mod action_matrix_initialization {
     const N: usize = 8;
     const E: usize = choose_two(N);
 
+    type T = Uxx;
+
     #[test]
     fn correct_number_of_acounts() {
-        let graph = ColoredGraph::<C, N>::red();
-        let actions = ActionMatrix::<C, N, E>::from(graph);
+        let graph = ColoredGraph::<T, C, N>::red();
+        let actions = ActionMatrix::<T, C, N, E>::from(graph);
         assert_eq!(actions.actions.len(), (C-1) * E)
     }
 
     #[test]
     fn red_graph_action_gradients() {
-        let graph = ColoredGraph::<C, N>::red();
-        let actions = ActionMatrix::<C, N, E>::from(graph);
+        let graph = ColoredGraph::<T, C, N>::red();
+        let actions = ActionMatrix::<T, C, N, E>::from(graph);
         for ((color, _), slope) in actions.actions {
             assert_ne!(color, 0);
             assert_eq!(slope, choose(N-2, S[0]-2));
@@ -72,8 +79,9 @@ mod action_matrix_initialization {
     }
 }
 
-impl<const C: usize, const N: usize, const E: usize> ActionMatrix<C, N, E> {
-    pub fn graph(&self) -> &ColoredGraph<C, N> { &self.graph }
+impl<T: Neighborhood, const C: usize, const N: usize, const E: usize>
+ActionMatrix<T, C, N, E> {
+    pub fn graph(&self) -> &ColoredGraph<T, C, N> { &self.graph }
     pub fn actions_mut(&mut self) -> &mut PriorityQueue<Action, Iyy> { &mut self.actions }
     
     fn remove_slope(&mut self, action: Action) -> (Action, Iyy) {
@@ -195,7 +203,8 @@ impl<const C: usize, const N: usize, const E: usize> ActionMatrix<C, N, E> {
 mod recolor_gradient_test {
     use super::*;
 
-    impl<const C: usize, const N: usize, const E: usize> ActionMatrix<C, N, E> {
+    impl<T: Neighborhood, const C: usize, const N: usize, const E: usize>
+    ActionMatrix<T, C, N, E> {
         pub fn slope(&self, action: Action) -> Option<&Iyy> {
             self.actions.get_priority(&action)
         }
@@ -205,9 +214,11 @@ mod recolor_gradient_test {
     const N: usize = 8;
     const E: usize = choose_two(N);
 
+    type T = Uxx;
+
     #[test]
     fn one_recoloring() {
-        let mut actions = ActionMatrix::<C, N, E>::from(ColoredGraph::<C, N>::red());
+        let mut actions = ActionMatrix::<T, C, N, E>::from(ColoredGraph::<T, C, N>::red());
         actions.recolor((1, 0), 0);
         for (i, (u,v)) in (0..N).tuple_combinations().enumerate() {
             let slope_0 = actions.slope((0, i));
@@ -238,8 +249,8 @@ impl<const N: usize> From<&Recoloring<N>> for Action {
     }
 }
 
-impl<const C: usize, const N: usize, const E: usize> ActionMatrix<C, N, E> {
-
+impl<T: Neighborhood, const C: usize, const N: usize, const E: usize>
+ActionMatrix<T, C, N, E> {
     pub fn score(&self) -> Iyy {
         let mut score: Iyy = 0;
         for (color, &s) in S.iter().enumerate() {
@@ -284,9 +295,11 @@ mod test_random_recoloring {
     const N: usize = 8;
     const E: usize = choose_two(N);
 
+    type T = Uxx;
+
     #[test]
     fn consistent_counts() {
-        let mut actions = ActionMatrix::<C, N, E>::from(ColoredGraph::<C, N>::red());
+        let mut actions = ActionMatrix::<T, C, N, E>::from(ColoredGraph::<T, C, N>::red());
         let mut rng = rand::thread_rng();
         for _ in 0..100 {
             for c in 0..C {
@@ -310,7 +323,7 @@ mod test_random_recoloring {
         }
     }
 
-    impl ActionMatrix<C, N, E> {
+    impl<T: Neighborhood> ActionMatrix<T, C, N, E> {
         fn calculate_slope(&self, (new_color, pos): Action) -> Option<Iyy> {
             let edge = pos_to_edge::<N>(pos);
             let old_color = self.graph.color(edge)
@@ -326,7 +339,7 @@ mod test_random_recoloring {
 
     #[test]
     fn verify_all_slopes() {
-        let mut actions = ActionMatrix::from(ColoredGraph::red());
+        let mut actions: ActionMatrix<T, C, N, E> = ActionMatrix::from(ColoredGraph::red());
         let mut rng = rand::thread_rng();
         for _ in 0..100 {
             for c in 0..C {
@@ -343,7 +356,7 @@ mod test_random_recoloring {
 
     #[test]
     fn consistent_scores() {
-        let mut actions = ActionMatrix::<C, N, E>::from(ColoredGraph::<C, N>::red());
+        let mut actions = ActionMatrix::<T, C, N, E>::from(ColoredGraph::<T, C, N>::red());
         let mut rng = rand::thread_rng();
         for _ in 0..100 {
             assert_eq!(actions.score(), actions.graph.score());
@@ -353,7 +366,8 @@ mod test_random_recoloring {
     }
 }
 
-impl<const C: usize, const N: usize, const E: usize> PartialEq for ActionMatrix<C, N, E> {
+impl<T: Neighborhood, const C: usize, const N: usize, const E: usize>
+PartialEq for ActionMatrix<T, C, N, E> {
     fn eq(&self, other: &Self) -> bool {
         self.graph == other.graph
     }

@@ -1,28 +1,30 @@
+use crate::neighborhood::Neighborhood;
+use crate::prelude::*;
+use crate::{colored_graph::*, action_matrix::*};
+
 use std::collections::HashMap;
 use rand::{rngs::ThreadRng, seq::SliceRandom};
 
-use crate::{
-    colored_graph::*,
-    action_matrix::*
-};
 
 
-pub struct ScoreKeeper<const C: usize, const N: usize, const E: usize> {
-    roots: Vec<ActionMatrix<C, N, E>>,
+pub struct ScoreKeeper<T: Neighborhood, const C: usize, const N: usize, const E: usize> {
+    roots: Vec<ActionMatrix<T, C, N, E>>,
     best_count: Iyy,
     name: String
 }
 
-impl<const C: usize, const N: usize, const E: usize> From<ActionMatrix<C, N, E>> for ScoreKeeper<C, N, E> {
-    fn from(actions: ActionMatrix<C, N, E>) -> Self {
+impl<T: Neighborhood, const C: usize, const N: usize, const E: usize>
+From<ActionMatrix<T, C, N, E>> for ScoreKeeper<T, C, N, E> {
+    fn from(actions: ActionMatrix<T, C, N, E>) -> Self {
         let count = actions.total();
         let name = format!("r{S:?}_{N}");
         ScoreKeeper { roots: vec![actions], best_count: count, name }
     }
 }
 
-impl<const C: usize, const N: usize, const E: usize> ScoreKeeper<C, N, E> {
-    pub fn random_root(&self, rng: &mut ThreadRng) -> &ActionMatrix<C, N, E> { 
+impl<T: Neighborhood, const C: usize, const N: usize, const E: usize>
+ScoreKeeper<T, C, N, E> {
+    pub fn random_root(&self, rng: &mut ThreadRng) -> &ActionMatrix<T, C, N, E> { 
         self.roots.choose(rng).unwrap()
     }
 }
@@ -35,9 +37,10 @@ pub enum ScoreUpdate {
     Worse
 }
 
-impl<const C: usize, const N: usize, const E: usize> ScoreKeeper<C, N, E> {
+impl<T: Neighborhood, const C: usize, const N: usize, const E: usize>
+ScoreKeeper<T, C, N, E> {
     #[must_use]
-    pub fn update(&mut self, actions: &ActionMatrix<C, N, E>) -> ScoreUpdate {
+    pub fn update(&mut self, actions: &ActionMatrix<T, C, N, E>) -> ScoreUpdate {
         let count = actions.total();
         match self.best_count.cmp(&count) {
             std::cmp::Ordering::Less => ScoreUpdate::Worse,
@@ -154,15 +157,15 @@ impl GraphData {
 }
 
 #[derive(Default)]
-pub struct GraphMap<const C: usize, const N: usize, const E: usize> {
-    graphs: HashMap<ColoredGraph<C, N>, GraphData>
+pub struct GraphMap<T: Neighborhood, const C: usize, const N: usize, const E: usize> {
+    graphs: HashMap<ColoredGraph<T, C, N>, GraphData>
 }
 
-impl<const C: usize, const N: usize, const E: usize> GraphMap<C, N, E> {
+impl<T: Neighborhood, const C: usize, const N: usize, const E: usize> GraphMap<T, C, N, E> {
     pub fn next_action(
         &mut self,
-        actions: &mut ActionMatrix<C, N, E>,
-        score_keeper: &mut ScoreKeeper<C, N, E>,
+        actions: &mut ActionMatrix<T, C, N, E>,
+        score_keeper: &mut ScoreKeeper<T, C, N, E>,
         // seen_edges: &mut [bool; E]
     ) -> Option<ScoreUpdate> {
         let graph_data = self.graphs.entry(actions.graph().clone())

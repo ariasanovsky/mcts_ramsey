@@ -1,10 +1,13 @@
+use crate::{prelude::*, neighborhood::*};
+
 use bit_fiddler::{is_set, set};
 use bit_iter::BitIter;
 use itertools::Itertools;
 use crate::colored_graph::*;
 
 
-impl<const C: usize, const N: usize> ColoredGraph<C, N> {
+impl<T: Neighborhood, const C: usize, const N: usize>
+ColoredGraph<T, C, N> {
     pub fn show_matrix(&self) {
         if C == 0 { println!("Colorless graph!") }
         for u in 1..N {
@@ -64,10 +67,10 @@ impl<const C: usize, const N: usize> ColoredGraph<C, N> {
 #[cfg(test)]
 mod g6_tests {
     use crate::colored_graph::{ColoredGraph, Recoloring};
-
+    type T = super::Uxx;
     #[test]
     fn mckay_example() {
-        let mut graph = ColoredGraph::<2, 5>::red();
+        let mut graph = ColoredGraph::<T, 2, 5>::red();
         graph.recolor(Recoloring{ old_color: 0, new_color: 1, edge: (0, 2) });
         graph.recolor(Recoloring{ old_color: 0, new_color: 1, edge: (0, 4) });
         graph.recolor(Recoloring{ old_color: 0, new_color: 1, edge: (1, 3) });
@@ -76,7 +79,8 @@ mod g6_tests {
     }
 }
 
-impl<const C: usize, const N: usize> TryFrom<&Vec<String>> for ColoredGraph<C, N> {
+impl<T: Neighborhood, const C: usize, const N: usize>
+TryFrom<&Vec<String>> for ColoredGraph<T, C, N> {
     type Error = String;
 
     fn try_from(strings: &Vec<String>) -> Result<Self, Self::Error> {
@@ -116,9 +120,11 @@ mod g6_graph_conversion_tests {
     const C: usize = 2;
     const N: usize = 8;
     
+    type T = super::Uxx;
+
     #[test]
     fn red_graph() {
-        let red = ColoredGraph::<C, N>::red();
+        let red = ColoredGraph::<T, C, N>::red();
         let strings = red.graph6s();
         let red2 = ColoredGraph::try_from(&strings);
         assert_eq!(Ok(red), red2)
@@ -126,7 +132,7 @@ mod g6_graph_conversion_tests {
 
     #[test]
     fn random_recoloring() {
-        let mut graph = ColoredGraph::<C, N>::red();
+        let mut graph = ColoredGraph::<T, C, N>::red();
         let mut rng = rand::thread_rng();
         for _ in 0..100 {
             graph.show_neighborhoods();
@@ -166,7 +172,8 @@ const COLORS: &[(u8, u8, u8)] = &[
 ];
 
 
-impl<const C: usize, const N: usize> ColoredGraph<C, N> {
+impl<T: Neighborhood, const C: usize, const N: usize>
+ColoredGraph<T, C, N> {
     fn _tikz(&self) -> Vec<String> { // todo!("render at runtime w/ tectonic? best on linux...")
         let size_in_cm = ":2cm";
         let mut tikz = format!(
@@ -213,7 +220,8 @@ impl<const C: usize, const N: usize> ColoredGraph<C, N> {
 #[test]
 fn can_generate_tikz() {
     let mut rng = rand::thread_rng();
-    let graph = ColoredGraph::<2, 8>::uniformly_random(&mut rng);
+    type T = Uxx;
+    let graph = ColoredGraph::<T, 2, 8>::uniformly_random(&mut rng);
     println!("{}", graph._tikz()[0]);
 }
 
@@ -246,7 +254,8 @@ impl GraphPics {
     }
 }
 
-impl<const C: usize, const N: usize> ColoredGraph<C, N> {
+impl<T: Neighborhood, const C: usize, const N: usize>
+ColoredGraph<T, C, N> {
     pub fn svg(&self, name: String) -> GraphPics {
         let k: f64 = std::f64::consts::TAU / N as f64;
         let r: f64 = usize_sqrt(N) as f64;
@@ -300,9 +309,10 @@ impl<const C: usize, const N: usize> ColoredGraph<C, N> {
 fn can_generate_svg() {
     const C: usize = 3;
     const N: usize = 8;
+    type T = Uxx;
     
     let mut rng = rand::thread_rng();
-    let graph = ColoredGraph::<C, N>::uniformly_random(&mut rng);
+    let graph = ColoredGraph::<T, C, N>::uniformly_random(&mut rng);
     let docs = graph.svg(String::from("test"));
     docs.render()
 }

@@ -1,14 +1,13 @@
-include!(concat!(env!("OUT_DIR"), "/constants.rs"));
+use std::marker::PhantomData;
+
+use crate::neighborhood::*;
+use crate::prelude::*;
 
 use bit_fiddler::{set, unset, is_set, mask};
 use itertools::Itertools;
 use rand::prelude::*;
 use rand::distributions::WeightedIndex;
 use bit_iter::BitIter;
-
-pub type Color = usize;
-pub type Vertex = usize;
-pub type Edge = (Vertex, Vertex);
 
 pub struct ColoredEdge {
     pub color: Color,
@@ -25,69 +24,10 @@ impl<const N: usize> Recoloring<N> {
     pub fn new_edge(&self) -> ColoredEdge { ColoredEdge { color: self.new_color, edge: self.edge } }
 }
 
-pub const fn choose(n: usize, k: usize) -> Iyy {
-    match (n, k) {
-        (_, 0) => 1,
-        (0, _) => 0,
-        _ => choose(n-1, k) + choose(n-1, k-1)
-    }
-}
-
-pub const fn choose_two(n: usize) -> usize {
-    n*(n+1)/2-n
-}
-
-pub fn pos_to_edge<const N: usize>(pos: usize) -> Edge {
-    let mut u = 0;
-    let mut pos_u_n_minus_1 = N - 2;
-    while pos_u_n_minus_1 < pos {
-        pos_u_n_minus_1 += N - 2 - u;
-        u += 1
-    }
-    let v = N - 1 - (pos_u_n_minus_1 - pos);
-    (u, v)
-}
-
-pub fn edge_to_pos<const N: usize>((u, v): Edge) -> usize {
-    if u < v { u*(2*N-1-u)/2 + (v-u-1) }
-    else     { v*(2*N-1-v)/2 + (u-v-1) }
-}
-
-#[cfg(test)]
-mod math_tests {
-
-    use itertools::Itertools;
-
-    use super::*;
-
-    #[test]
-    fn choose_two_consistent() {
-        for n in 0..100 {
-            assert_eq!(choose_two(n), choose(n, 2) as usize);
-        }
-    }
-
-    const N: usize = 8;
-
-    #[test]
-    fn pos_to_edge_test() {
-        for (i, (u, v)) in (0..N).tuple_combinations().enumerate() {
-            assert_eq!(pos_to_edge::<N>(i), (u, v));
-        }
-    }
-
-    #[test]
-    fn edge_to_pos_test() {
-        for (i, (u, v)) in (0..N).tuple_combinations().enumerate() {
-            assert_eq!(edge_to_pos::<N>((u,v)), i);
-            assert_eq!(edge_to_pos::<N>((v,u)), i);
-        }
-    }
-}
-
 #[derive(Hash, Eq, PartialEq, Clone, Debug)]
-pub struct ColoredGraph<const C: usize, const N: usize> {
-    neighborhoods: [[Uxx; N]; C]
+pub struct ColoredGraph<T: Neighborhood, const C: usize, const N: usize> {
+    neighborhoods: [[Uxx; N]; C],
+    phantom: PhantomData<T>
 }
 
 pub fn random_edge<const N: usize>(rng: &mut ThreadRng) -> Edge {
@@ -96,7 +36,8 @@ pub fn random_edge<const N: usize>(rng: &mut ThreadRng) -> Edge {
     if v < u { (v, u) } else { (u, v+1) }
 }
 
-impl<const C: usize, const N: usize> ColoredGraph<C, N> {
+impl<T: Neighborhood, const C: usize, const N: usize>
+ColoredGraph<T, C, N> {
     pub fn score(&self) -> Iyy {
         (0..C)
         .map(|c| self.count_cliques(c, None, None))
@@ -122,17 +63,17 @@ impl<const C: usize, const N: usize> ColoredGraph<C, N> {
         self.count_cliques(color, Some(S[color]-2), candidates)
     }
     
-    pub fn red() -> ColoredGraph<C, N> {
+    pub fn red() -> ColoredGraph<T, C, N> {
         let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
         for u in 0..N {
             let mut neighborhood = mask!([0..N], Uxx);
             unset!(in neighborhood, Uxx, u);
             neighborhoods[0][u] = neighborhood
         }
-        ColoredGraph { neighborhoods }
+        ColoredGraph { neighborhoods, phantom: PhantomData }
     }
 
-    pub fn uniformly_random(rng: &mut ThreadRng) -> ColoredGraph<C, N> {
+    pub fn uniformly_random(rng: &mut ThreadRng) -> ColoredGraph<T, C, N> {
         let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
         for (u, v) in (0..N).tuple_combinations() {
             let c = rng.gen_range(0..C);
@@ -140,10 +81,10 @@ impl<const C: usize, const N: usize> ColoredGraph<C, N> {
             neighborhoods[c][v] = set!((neighborhoods[c][v]), Uxx, u);
         }
         
-        ColoredGraph { neighborhoods }
+        ColoredGraph { neighborhoods, phantom: PhantomData }
     }
 
-    pub fn random(rng: &mut ThreadRng, dist: &WeightedIndex<f64>) -> ColoredGraph<C, N> {
+    pub fn random(rng: &mut ThreadRng, dist: &WeightedIndex<f64>) -> ColoredGraph<T, C, N> {
         let mut neighborhoods: [[Uxx; N]; C] = [[0; N]; C];
         for (u, v) in (0..N).tuple_combinations() {
             let c = rng.sample(dist);
@@ -151,7 +92,7 @@ impl<const C: usize, const N: usize> ColoredGraph<C, N> {
             neighborhoods[c][v] = set!((neighborhoods[c][v]), Uxx, u);
         }
         
-        ColoredGraph { neighborhoods }
+        ColoredGraph { neighborhoods, phantom: PhantomData }
     }
 
     fn add(&mut self, c: Color, edge: Edge) {
@@ -222,13 +163,17 @@ impl<const C: usize, const N: usize> ColoredGraph<C, N> {
 
 #[cfg(test)]
 mod tests {
+    use crate::prelude::choose;
+
     use super::*;
+
+    type T = Uxx;
 
     #[test]
     fn only_red_cliques() {
         const N: usize = 8;
         const C: usize = 2;
-        let red = ColoredGraph::<C, N>::red();
+        let red = ColoredGraph::<T, C, N>::red();
         assert_eq!(choose(N, S[0]),
             red.count_cliques(0, None, None));
         for c in 1..C {
@@ -238,8 +183,9 @@ mod tests {
     }
 }
 
-impl<const C: usize, const N: usize> From<[[Uxx; N]; C]> for ColoredGraph<C, N> {
+impl<T: Neighborhood, const C: usize, const N: usize>
+From<[[Uxx; N]; C]> for ColoredGraph<T, C, N> {
     fn from(neighborhoods: [[Uxx; N]; C]) -> Self {
-        ColoredGraph { neighborhoods }
+        ColoredGraph { neighborhoods, phantom: PhantomData }
     }
 }

@@ -167,3 +167,9 @@ $$
 $$
 
 to define a nonuniform weighting for the cost function (i.e., so that a red $K_3$ does not cost the same as a blue $K_9$).
+
+### Better (faster?) bit sets
+
+I may switch to `BitArr!(...)` from the `bitvec` crate.
+To do this, implement a `BitSet` trait and let `ColoredGraph` be generic over `T: BitSet`.
+Swap out multiple different bitsets to see which performs best.

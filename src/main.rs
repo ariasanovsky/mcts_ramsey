@@ -1,9 +1,9 @@
 use std::io;
 use mcts_ramsey::{
     learning_loop::search,
-    colored_graph::{
+    prelude::{
         N, S, choose_two,
-        EPOCHS, EPISODES, ROOTS, EXPLORE, GUESS_P}};
+        EPOCHS, EPISODES, ROOTS, EXPLORE, GUESS_P, Uxx}};
 
 const C: usize = S.len();
 const E: usize = choose_two(N);
@@ -43,8 +43,10 @@ fn main() {
 
     use std::time::Instant;
     let now = Instant::now();
+    
+    type T = Uxx;
 
-    search::<C, N, E>();
+    search::<T, C, N, E>();
 
     let elapsed = now.elapsed();
     println!("Elapsed: {elapsed:.3?}");
