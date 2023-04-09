@@ -166,16 +166,15 @@ GraphMap<T, C, N, E>
 {
     pub fn next_action(
         &self,
-        actions: &mut ActionMatrix<T, C, N, E>,
-        score_keeper: &mut ScoreKeeper<T, C, N, E>,
-    ) -> Option<(ScoreUpdate, Action)>
+        actions: &mut ActionMatrix<T, C, N, E>
+    ) -> Option<Action>
     {
         let default_graph_data = GraphData::default();
         let graph_data = self
             .graphs
             .get(&actions.graph);
-        let graph_data = if graph_data.is_some() {
-            graph_data.clone().unwrap()
+        let graph_data = if let Some(data) = graph_data {
+            data
         }
         else {
             &default_graph_data
@@ -192,10 +191,10 @@ GraphMap<T, C, N, E>
             let best_unvisited: Option<(Action, Iyy)> = loop {
                 let Some((action, q_ga)) = action_queue.peek()
                     else { break None };
-                if graph_data.action_map.actions.contains_key(action) { // todo!("make a seen function")
+                if graph_data.action_map.actions.contains_key(action) {
                     popped_actions.push(action_queue.pop().unwrap());
                 }
-                else { // if !seen_edges[action.1] {
+                else {
                     break Some((*action, *q_ga))
                 }
             };
@@ -206,8 +205,6 @@ GraphMap<T, C, N, E>
 
             match (best_visited, best_unvisited) {
                 (None, None) => {
-                    // for pos in 0..E { seen_edges[pos] = false }
-                    // continue
                     panic!("Couldn't find an action!")
                 }
                 (None, Some((action, q_ga))) => break (action, Some(q_ga)),
@@ -223,14 +220,19 @@ GraphMap<T, C, N, E>
                 }
             };
         };
-        // println!("we removed {} items from the action queue... is this healthy?", popped_actions.len());
-        // seen_edges[best_action.1] = true;
         actions.act(best_action);
-        Some((score_keeper.update(actions), best_action))
+        Some(best_action)
 
     }
 
-    pub fn update_counts(&mut self, chosen_root: &mut ActionMatrix<T, C, N, E>, actions_taken: Vec<Action>) {
+    pub fn update_counts(
+        &mut self,
+        score_keeper: &mut ScoreKeeper<T, C, N, E>,
+        chosen_root: &mut ActionMatrix<T, C, N, E>,
+        actions_taken: Vec<Action>
+    ) -> Result<(), ScoreUpdate>
+    
+    {
         let graph_data = self.graphs.entry(chosen_root.graph().clone())
             .or_insert(GraphData::default());
         graph_data.n_visits += 1;
@@ -241,7 +243,11 @@ GraphMap<T, C, N, E>
             let q_ga = chosen_root.counts[best_action.0][best_action.1];
             graph_data.record(best_action, Some(q_ga));
             chosen_root.act(best_action);
+            if let ScoreUpdate::Done = score_keeper.update(chosen_root) {
+                return Err(ScoreUpdate::Done)
+            }
         }
+        Ok(())
     }
     
 }
