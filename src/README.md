@@ -147,15 +147,16 @@ Better would be to select $G\sim\mathbb{G}(N, p^\star)$ where $p^\star$ minimize
 
 $$
 \langle
-1,
-\mathbb{E}_{G\sim \mathbb{G}(N, p)}\left(
+{\bf 1}\cdot
+\mathbb{E}_{G\sim \mathbb{G}(N, p)}
 \kappa_S(G)
-\right)\rangle
+\rangle
 =
 $$
 
 $$
-\sum_c \mathbb{E}_{G\sim\mathbb{G}(N, p_c)}\left( \kappa_{S[c]}(G) \right)
+\sum_c \mathbb{E}_{G\sim\mathbb{G}(N, p_c)}
+\kappa_{S[c]}(G)
 =
 $$
 
