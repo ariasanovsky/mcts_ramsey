@@ -148,14 +148,14 @@ Better would be to select $G\sim\mathbb{G}(N, p^*)$ where $p^*$ minimizes the ex
 $$
 \left\langle
 1,
-\mathbb{E}_{G\sim \mathbb{G}(N, p)}\left[
+\mathbb{E}_{G\sim \mathbb{G}(N, p)}\left(
 \kappa_S(G)
-\right]\right\rangle
+\right)\right\rangle
 =
 $$
 
 $$
-\sum_c \mathbb{E}_{G\sim\mathbb{G}(N, p_c)}\left[ \kappa_{S[c]}(G) \right]
+\sum_c \mathbb{E}_{G\sim\mathbb{G}(N, p_c)}\left( \kappa_{S[c]}(G) \right)
 =
 $$
 
