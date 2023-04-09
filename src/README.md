@@ -146,12 +146,24 @@ When $S$ is nonuniform, this choice is far from optimal.
 Better would be to select $G\sim\mathbb{G}(N, p^\star)$ where $p^\star$ minimizes the expected cost
 
 $$
-\langle
+\langle \rangle
+$$
+
+$$
 {\bf 1}\cdot
+$$
+
+$$
 \mathbb{E}_{G\sim \mathbb{G}(N, p)}
+$$
+
+$$
+G\sim \mathbb{G}(N, p)
+$$
+
+
+$$
 \kappa_S(G)
-\rangle
-=
 $$
 
 $$
