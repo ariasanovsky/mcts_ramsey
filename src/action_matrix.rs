@@ -81,6 +81,9 @@ impl<T: Neighborhood, const C: usize, const N: usize, const E: usize>
 ActionMatrix<T, C, N, E> {
     pub fn graph(&self) -> &ColoredGraph<T, C, N> { &self.graph }
     pub fn actions_mut(&mut self) -> &mut PriorityQueue<Action, Iyy> { &mut self.actions }
+    pub fn slope(&self, action: Action) -> Option<&Iyy> {
+        self.actions.get_priority(&action)
+    }
     
     fn remove_slope(&mut self, action: Action) -> (Action, Iyy) {
         self.actions.remove(&action).unwrap()
@@ -201,13 +204,6 @@ ActionMatrix<T, C, N, E> {
 #[cfg(test)]
 mod recolor_gradient_test {
     use super::*;
-
-    impl<T: Neighborhood, const C: usize, const N: usize, const E: usize>
-    ActionMatrix<T, C, N, E> {
-        pub fn slope(&self, action: Action) -> Option<&Iyy> {
-            self.actions.get_priority(&action)
-        }
-    }
 
     const C: usize = 2;
     const N: usize = 8;

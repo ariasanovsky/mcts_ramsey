@@ -1,5 +1,5 @@
 use crate::neighborhood::Neighborhood;
-use crate::prelude::*;
+use crate::prelude::{Iyy, Uzz, S, ROOTS, EXPLORE};
 use crate::{colored_graph::*, action_matrix::*};
 
 use std::collections::HashMap;
@@ -235,8 +235,8 @@ GraphMap<T, C, N, E>
         for best_action in actions_taken {
             let graph_data = self.graphs.entry(chosen_root.graph().clone())
                 .or_insert(GraphData::default());
-            let q_ga = chosen_root.counts[best_action.0][best_action.1];
-            graph_data.record(best_action, Some(q_ga));
+            let q_ga = chosen_root.slope(best_action);
+            graph_data.record(best_action, q_ga.copied());
             chosen_root.act(best_action);
             if let ScoreUpdate::Done = score_keeper.update(chosen_root) {
                 return Err(ScoreUpdate::Done)

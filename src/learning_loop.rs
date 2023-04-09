@@ -5,7 +5,8 @@ use rand::distributions::WeightedIndex;
 use crate::{search_map::*, action_matrix::*, colored_graph::*};
 
 pub fn play_episode<T: Neighborhood, const C: usize, const N: usize, const E: usize>
-(g_map: &mut GraphMap<T, C, N, E>, score_keeper: &mut ScoreKeeper<T, C, N, E>, n_moves: usize) -> Result<(), ScoreUpdate>
+(g_map: &mut GraphMap<T, C, N, E>, score_keeper: &mut ScoreKeeper<T, C, N, E>, n_moves: usize)
+-> Result<(), ScoreUpdate>
 {
     let mut rng = rand::thread_rng();
     let mut chosen_root = score_keeper.random_root(&mut rng).clone();
