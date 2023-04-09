@@ -59,8 +59,9 @@ ColoredGraph<T, C, N> {
     }
     
     pub fn red() -> ColoredGraph<T, C, N> {
-        let mut neighborhoods: [[T; N]; C] = [[T::full(); N]; C];
+        let mut neighborhoods: [[T; N]; C] = [[T::default(); N]; C];
         for u in 0..N {
+            neighborhoods[0][u] = T::full();
             neighborhoods[0][u].delete(u)
         }
         ColoredGraph { neighborhoods }
@@ -156,12 +157,12 @@ mod tests {
 
     use super::*;
 
-    type T = Uxx;
-
+    
     #[test]
     fn only_red_cliques() {
         const N: usize = 8;
         const C: usize = 2;
+        type T = UxxN<N>;
         let red = ColoredGraph::<T, C, N>::red();
         assert_eq!(choose(N, S[0]),
             red.count_cliques(0, None, None));

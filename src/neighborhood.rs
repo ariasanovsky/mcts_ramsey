@@ -1,3 +1,5 @@
+use std::ops::BitAnd;
+
 use bit_fiddler::{mask, unset, set, is_set, toggle};
 use bit_iter::BitIter;
 
@@ -17,39 +19,52 @@ pub trait Neighborhood:
     fn toggle(&mut self, u: Vertex);
 }
 
-impl Neighborhood for Uxx {
+#[derive(Default, Clone, Copy, Hash, PartialEq, Eq, Debug)]
+pub struct UxxN<const N: usize> {
+    bits: Uxx
+}
+
+impl<const N: usize> BitAnd for UxxN<N> {
+    type Output = UxxN<N>;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        UxxN { bits: self.bits & rhs.bits }
+    }
+}
+
+impl<const N: usize> Neighborhood for UxxN<N> {
     fn full() -> Self {
-        mask!([0..N], Uxx)
+        UxxN { bits: mask!([0..N], Uxx) }
     }
 
     fn contains(&self, u: Vertex) -> bool {
-        let me = *self;
+        let me = self.bits;
         is_set!(me, Uxx, u)
     }
 
     fn iter(&self) -> BitIter<usize> {
-        BitIter::<usize>::from(*self as usize)
+        BitIter::<usize>::from(self.bits as usize)
     }
 
     fn n_elements(&self) -> u32 {
-        self.count_ones()
+        self.bits.count_ones()
     }
     
     fn add(&mut self, u: Vertex) {
-        let mut me = *self;
+        let mut me = self.bits;
         set!(in me, Uxx, u);
-        *self = me
+        self.bits = me
     }
 
     fn delete(&mut self, u: Vertex) {
-        let mut me = *self;
+        let mut me = self.bits;
         unset!(in me, Uxx, u);
-        *self = me
+        self.bits = me
     }
 
     fn toggle(&mut self, u: Vertex) {
-        let mut me = *self;
+        let mut me = self.bits;
         toggle!(in me, Uxx, u);
-        *self = me
+        self.bits = me
     }
 }

@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{prelude::*, neighborhood::Neighborhood};
+use crate::{prelude::*, neighborhood::*};
 
 use priority_queue::PriorityQueue;
 pub use itertools::Itertools;
@@ -57,7 +57,7 @@ mod action_matrix_initialization {
     const N: usize = 8;
     const E: usize = choose_two(N);
 
-    type T = Uxx;
+    type T = UxxN<N>;
 
     #[test]
     fn correct_number_of_acounts() {
@@ -128,7 +128,7 @@ ActionMatrix<T, C, N, E> {
 
         let neighbors_uv = self.graph.common_neighborhood(color, u, v);
         for (u, v) in [(u, v), (v, u)] {
-            let mut neighbors_u = self.graph.bit_neighborhood(color, u).clone();
+            let mut neighbors_u = self.graph.bit_neighborhood(color, u);
             neighbors_u.delete(v);
             for w in neighbors_u.iter() {
                 let neighbors_uvw = neighbors_uv & self.graph.bit_neighborhood(color, w);
@@ -213,7 +213,7 @@ mod recolor_gradient_test {
     const N: usize = 8;
     const E: usize = choose_two(N);
 
-    type T = Uxx;
+    type T = UxxN<N>;
 
     #[test]
     fn one_recoloring() {
@@ -294,7 +294,7 @@ mod test_random_recoloring {
     const N: usize = 8;
     const E: usize = choose_two(N);
 
-    type T = Uxx;
+    type T = UxxN<N>;
 
     #[test]
     fn consistent_counts() {

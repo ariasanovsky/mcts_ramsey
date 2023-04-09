@@ -3,7 +3,7 @@ use mcts_ramsey::{
     learning_loop::search,
     prelude::{
         N, S, choose_two,
-        EPOCHS, EPISODES, ROOTS, EXPLORE, GUESS_P, Uxx}};
+        EPOCHS, EPISODES, ROOTS, EXPLORE, GUESS_P, Uxx}, neighborhood::UxxN};
 
 const C: usize = S.len();
 const E: usize = choose_two(N);
@@ -44,7 +44,7 @@ fn main() {
     use std::time::Instant;
     let now = Instant::now();
     
-    type T = Uxx;
+    type T = UxxN<N>;
 
     search::<T, C, N, E>();
 

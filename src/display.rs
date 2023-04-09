@@ -66,10 +66,13 @@ ColoredGraph<T, C, N> {
 #[cfg(test)]
 mod g6_tests {
     use crate::colored_graph::{ColoredGraph, Recoloring};
-    type T = super::Uxx;
+    const C: usize = 2;
+    const N: usize = 5;
+    
+    type T = super::UxxN<N>;
     #[test]
     fn mckay_example() {
-        let mut graph = ColoredGraph::<T, 2, 5>::red();
+        let mut graph = ColoredGraph::<T, C, N>::red();
         graph.recolor(Recoloring{ old_color: 0, new_color: 1, edge: (0, 2) });
         graph.recolor(Recoloring{ old_color: 0, new_color: 1, edge: (0, 4) });
         graph.recolor(Recoloring{ old_color: 0, new_color: 1, edge: (1, 3) });
@@ -119,13 +122,13 @@ mod g6_graph_conversion_tests {
     const C: usize = 2;
     const N: usize = 8;
     
-    type T = super::Uxx;
+    type T = super::UxxN<N>;
 
     #[test]
     fn red_graph() {
         let red = ColoredGraph::<T, C, N>::red();
         let strings = red.graph6s();
-        let red2 = ColoredGraph::try_from(&strings);
+        let red2: Result<ColoredGraph<T, C, N>, String> = ColoredGraph::try_from(&strings);
         assert_eq!(Ok(red), red2)
     }
 
@@ -219,8 +222,11 @@ ColoredGraph<T, C, N> {
 #[test]
 fn can_generate_tikz() {
     let mut rng = rand::thread_rng();
-    type T = Uxx;
-    let graph = ColoredGraph::<T, 2, 8>::uniformly_random(&mut rng);
+    const C: usize = 2;
+    const N: usize = 8;
+    type T = UxxN<N>;
+
+    let graph = ColoredGraph::<T, C, N>::uniformly_random(&mut rng);
     println!("{}", graph._tikz()[0]);
 }
 
@@ -308,7 +314,7 @@ ColoredGraph<T, C, N> {
 fn can_generate_svg() {
     const C: usize = 3;
     const N: usize = 8;
-    type T = Uxx;
+    type T = UxxN<N>;
     
     let mut rng = rand::thread_rng();
     let graph = ColoredGraph::<T, C, N>::uniformly_random(&mut rng);
