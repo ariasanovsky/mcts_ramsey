@@ -165,13 +165,22 @@ impl<T: Neighborhood, const C: usize, const N: usize, const E: usize>
 GraphMap<T, C, N, E>
 {
     pub fn next_action(
-        &mut self,
+        &self,
         actions: &mut ActionMatrix<T, C, N, E>,
         score_keeper: &mut ScoreKeeper<T, C, N, E>,
     ) -> Option<(ScoreUpdate, Action)>
     {
-        let graph_data = self.graphs.entry(actions.graph().clone())
-            .or_insert(GraphData::default());
+        let default_graph_data = GraphData::default();
+        let graph_data = self
+            .graphs
+            .get(&actions.graph);
+        let graph_data = if graph_data.is_some() {
+            graph_data.clone().unwrap()
+        }
+        else {
+            &default_graph_data
+        };
+        let graph_data = graph_data;
         let best_visited = graph_data.visited_argmax();
         let default_nu = graph_data.default_nu();
 
@@ -179,7 +188,7 @@ GraphMap<T, C, N, E>
         let action_queue = actions.actions_mut();
         let mut popped_actions = vec![];
 
-        let (best_action, q_ga) = loop {
+        let (best_action, _) = loop {
             let best_unvisited: Option<(Action, Iyy)> = loop {
                 let Some((action, q_ga)) = action_queue.peek()
                     else { break None };
@@ -217,13 +226,22 @@ GraphMap<T, C, N, E>
         // println!("we removed {} items from the action queue... is this healthy?", popped_actions.len());
         // seen_edges[best_action.1] = true;
         actions.act(best_action);
-        graph_data.record(best_action, q_ga);
         Some((score_keeper.update(actions), best_action))
 
     }
 
     pub fn update_counts(&mut self, chosen_root: &mut ActionMatrix<T, C, N, E>, actions_taken: Vec<Action>) {
-        
+        let graph_data = self.graphs.entry(chosen_root.graph().clone())
+            .or_insert(GraphData::default());
+        graph_data.n_visits += 1;
+
+        for best_action in actions_taken {
+            let graph_data = self.graphs.entry(chosen_root.graph().clone())
+                .or_insert(GraphData::default());
+            let q_ga = chosen_root.counts[best_action.0][best_action.1];
+            graph_data.record(best_action, Some(q_ga));
+            chosen_root.act(best_action);
+        }
     }
     
 }

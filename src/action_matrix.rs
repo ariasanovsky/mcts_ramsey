@@ -13,11 +13,11 @@ pub type Action = (Color, EdgePos);
 
 #[derive(Clone)]
 pub struct ActionMatrix<T: Neighborhood, const C: usize, const N: usize, const E: usize> {
-    counts: [[Iyy; E]; C],
-    graph: ColoredGraph<T, C, N>,
-    actions: PriorityQueue<Action, Iyy>,
-    totals: [Iyy; C],
-    phantom: PhantomData<T>
+    pub(crate) counts: [[Iyy; E]; C],
+    pub(crate) graph: ColoredGraph<T, C, N>,
+    pub(crate) actions: PriorityQueue<Action, Iyy>,
+    pub(crate) totals: [Iyy; C],
+    pub(crate) phantom: PhantomData<T>
 }
 
 impl<T: Neighborhood, const C: usize, const N: usize, const E: usize> From<ColoredGraph<T, C, N>> for ActionMatrix<T, C, N, E> {
