@@ -43,11 +43,11 @@ ColoredGraph<T, C, N> {
         let s = s.unwrap_or(S[color]);
         if s == 0 { return 1 }
         
-        let candidates = candidates.unwrap_or(T::default());
+        let candidates = candidates.unwrap_or(T::full());
         if s == 1 { return candidates.n_elements() as Iyy } 
         
         candidates.iter()
-            .map(|u| candidates & self.bit_neighborhood(color, u) & T::full())
+            .map(|u| candidates & self.bit_neighborhood(color, u) & T::interval_to_end(u))
             .map(|candidates| self.count_cliques(color, Some(s-1), Some(candidates)))
             .sum()
     }

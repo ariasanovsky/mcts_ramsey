@@ -11,6 +11,7 @@ pub trait Neighborhood:
     std::ops::BitAnd<Output = Self>
 {
     fn full() -> Self;
+    fn interval_to_end(u: Vertex) -> Self;
     fn contains(&self, u: Vertex) -> bool;
     fn iter(&self) -> BitIter<usize>;
     fn n_elements(&self) -> u32;
@@ -37,6 +38,11 @@ impl<const N: usize> Neighborhood for UxxN<N> {
         UxxN { bits: mask!([0..N], Uxx) }
     }
 
+    fn interval_to_end(u: Vertex) -> Self {
+        UxxN { bits: mask!([u..N], Uxx) }
+    }
+    
+    
     fn contains(&self, u: Vertex) -> bool {
         let me = self.bits;
         is_set!(me, Uxx, u)

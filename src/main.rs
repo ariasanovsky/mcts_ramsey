@@ -3,7 +3,7 @@ use mcts_ramsey::{
     learning_loop::search,
     prelude::{
         N, S, choose_two,
-        EPOCHS, EPISODES, ROOTS, EXPLORE, GUESS_P, Uxx}, neighborhood::UxxN};
+        EPOCHS, EPISODES, ROOTS, EXPLORE, GUESS_P}, neighborhood::UxxN};
 
 const C: usize = S.len();
 const E: usize = choose_two(N);
