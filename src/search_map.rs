@@ -173,13 +173,8 @@ GraphMap<T, C, N, E>
         let graph_data = self
             .graphs
             .get(&actions.graph);
-        let graph_data = if let Some(data) = graph_data {
-            data
-        }
-        else {
-            &default_graph_data
-        };
-        let graph_data = graph_data;
+        
+        let graph_data = graph_data.unwrap_or(&default_graph_data);
         let best_visited = graph_data.visited_argmax();
         let default_nu = graph_data.default_nu();
 
