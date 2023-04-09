@@ -143,14 +143,14 @@ As a cost, this requires:
 
 Currently, the first root graph $G$ is selected as a uniformly random $C$-edge-colored graph.
 When $S$ is nonuniform, this choice is far from optimal.
-Better would be to select $G\sim\mathbb{G}(N, p^*)$ where $p^*$ minimizes the expected cost
+Better would be to select $G\sim\mathbb{G}(N, p^\star)$ where $p^\star$ minimizes the expected cost
 
 $$
-\left\langle
+\langle
 1,
 \mathbb{E}_{G\sim \mathbb{G}(N, p)}\left(
 \kappa_S(G)
-\right)\right\rangle
+\right)\rangle
 =
 $$
 
