@@ -1,25 +1,45 @@
 use crate::{prelude::*, neighborhood::Neighborhood};
+use crate::{search_map::*, action_matrix::*, colored_graph::*};
 
 use rand::distributions::WeightedIndex;
-
-use crate::{search_map::*, action_matrix::*, colored_graph::*};
+use std::thread;
 
 pub fn play_episode<T: Neighborhood, const C: usize, const N: usize, const E: usize>
 (g_map: &mut GraphMap<T, C, N, E>, score_keeper: &mut ScoreKeeper<T, C, N, E>, n_moves: usize)
 -> Result<(), ScoreUpdate>
 {
-    let mut rng = rand::thread_rng();
-    let mut chosen_root = score_keeper.random_root(&mut rng).clone();
-    let mut action_matrix = chosen_root.clone();
-    let mut actions_taken = vec!();
-    for _ in 0..n_moves {
-        match g_map.next_action(&mut action_matrix) {
-            Some(action) => actions_taken.push(action),
-            None => todo!("refactor the return type")
+    let all_actions_taken = thread::scope(|s| {
+        let mut all_actions_taken = vec!();
+        
+        let threads = std::thread::available_parallelism()
+            .unwrap().get();
+
+        for _ in 0..threads {
+            let handler = s.spawn(|| {
+                let mut actions_taken = vec!();
+                let mut rng = rand::thread_rng();
+                
+                let chosen_root = score_keeper.random_root(&mut rng).clone();
+                let mut action_matrix = chosen_root.clone();
+                for _ in 0..n_moves {
+                    match g_map.next_action(&mut action_matrix) {
+                        Some(action) => actions_taken.push(action),
+                        None => todo!("refactor the return type")
+                    }
+                }
+                (chosen_root, actions_taken)
+            });
+
+            all_actions_taken.push(handler.join().unwrap())
         }
+        all_actions_taken
+    });
+    
+    for (mut chosen_root, actions_taken) in all_actions_taken.into_iter() {
+        g_map.update_counts(score_keeper,&mut chosen_root, actions_taken.to_vec())?
     }
 
-    g_map.update_counts(score_keeper,&mut chosen_root, actions_taken)
+    Ok(())
 }
 
 pub fn play_epoch<T: Neighborhood, const C: usize, const N: usize, const E: usize>(

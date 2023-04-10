@@ -8,7 +8,8 @@ use crate::prelude::*;
 pub trait Neighborhood:
     std::cmp::PartialEq + std::cmp::Eq + std::hash::Hash + 
     std::clone::Clone + std::marker::Copy + std::default::Default +
-    std::ops::BitAnd<Output = Self>
+    std::ops::BitAnd<Output = Self> + 
+    std::marker::Send + std::marker::Sync
 {
     fn full() -> Self;
     fn interval_to_end(u: Vertex) -> Self;
