@@ -1,4 +1,4 @@
-use crate::neighborhood::Neighborhood;
+use crate::learning_loop::neighborhood::Neighborhood;
 use crate::prelude::{Iyy, Uzz, S, ROOTS, EXPLORE};
 use crate::{colored_graph::*, action_matrix::*};
 

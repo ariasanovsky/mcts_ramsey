@@ -1,9 +1,7 @@
-use crate::{prelude::*, neighborhood::*};
+use crate::{prelude::*, colored_graph::neighborhood::*};
 
-use bit_fiddler::{is_set};
+use bit_fiddler::is_set;
 use itertools::Itertools;
-use crate::colored_graph::*;
-
 
 impl<T: Neighborhood, const C: usize, const N: usize>
 ColoredGraph<T, C, N> {
@@ -65,11 +63,11 @@ ColoredGraph<T, C, N> {
 
 #[cfg(test)]
 mod g6_tests {
-    use crate::colored_graph::{ColoredGraph, Recoloring};
+    use crate::colored_graph::{ColoredGraph, Recoloring, neighborhood::UxxN};
     const C: usize = 2;
     const N: usize = 5;
     
-    type T = super::UxxN<N>;
+    type T = UxxN<N>;
     #[test]
     fn mckay_example() {
         let mut graph = ColoredGraph::<T, C, N>::red();
@@ -242,6 +240,8 @@ use svg::{
     Document,
     node::element::{Path, Circle, path::Data}
 };
+
+use super::{ColoredGraph, ColoredEdge};
 
 pub struct GraphPics {
     pics: Vec<Document>,

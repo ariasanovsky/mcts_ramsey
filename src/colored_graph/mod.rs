@@ -1,9 +1,13 @@
-use crate::neighborhood::*;
+pub mod display;
+pub mod neighborhood;
+
 use crate::prelude::*;
 
 use itertools::Itertools;
 use rand::prelude::*;
 use rand::distributions::WeightedIndex;
+
+use self::neighborhood::Neighborhood;
 
 pub struct ColoredEdge {
     pub color: Color,
@@ -153,7 +157,7 @@ ColoredGraph<T, C, N> {
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::choose;
+    use crate::{prelude::choose, colored_graph::neighborhood::UxxN};
 
     use super::*;
 

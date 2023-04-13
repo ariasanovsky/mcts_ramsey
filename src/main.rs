@@ -1,9 +1,5 @@
 use std::io;
-use mcts_ramsey::{
-    learning_loop::search,
-    prelude::{
-        N, S, choose_two,
-        EPOCHS, EPISODES, ROOTS, EXPLORE, GUESS_P}, neighborhood::UxxN};
+use mcts_ramsey::{learning_loop::*, prelude::*, colored_graph::neighborhood::*};
 
 const C: usize = S.len();
 const E: usize = choose_two(N);

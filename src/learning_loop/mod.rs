@@ -1,8 +1,9 @@
-use crate::{prelude::*, neighborhood::Neighborhood};
+mod search_map;
 
 use rand::distributions::WeightedIndex;
-
-use crate::{search_map::*, action_matrix::*, colored_graph::*};
+use crate::{prelude::*, colored_graph::neighborhood::Neighborhood};
+use crate::{action_matrix::*, colored_graph::*};
+use self::search_map::*;
 
 pub fn play_episode<T: Neighborhood, const C: usize, const N: usize, const E: usize>
 (g_map: &mut GraphMap<T, C, N, E>, score_keeper: &mut ScoreKeeper<T, C, N, E>, n_moves: usize)
